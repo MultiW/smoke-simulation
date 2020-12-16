@@ -1,34 +1,45 @@
-#include <igl/opengl/glfw/Viewer.h>
+#include <iostream>
+#include <thread>
 
-int main(int argc, char *argv[])
+#include "visualization.h"
+#include "simulation.h"
+
+// Simulation state
+// TODO: what format is required of q?
+Eigen::MatrixXd q;
+Eigen::MatrixXd qdot;
+
+//simulation time and time step
+double t = 0; //simulation time 
+double dt = 0.001; //time step
+
+bool simulation_callback()
 {
-  // Inline mesh of a cube
-  const Eigen::MatrixXd V= (Eigen::MatrixXd(8,3)<<
-    0.0,0.0,0.0,
-    0.0,0.0,1.0,
-    0.0,1.0,0.0,
-    0.0,1.0,1.0,
-    1.0,0.0,0.0,
-    1.0,0.0,1.0,
-    1.0,1.0,0.0,
-    1.0,1.0,1.0).finished();
-  const Eigen::MatrixXi F = (Eigen::MatrixXi(12,3)<<
-    1,7,5,
-    1,3,7,
-    1,4,3,
-    1,2,4,
-    3,8,7,
-    3,4,8,
-    5,7,8,
-    5,8,6,
-    1,5,6,
-    1,6,2,
-    2,6,8,
-    2,8,4).finished().array()-1;
+	while (true)
+	{
+		simulate(q, qdot, dt, t);
+		t += dt;
+	}
+	return false;
+}
 
-  // Plot the mesh
-  igl::opengl::glfw::Viewer viewer;
-  viewer.data().set_mesh(V, F);
-  viewer.data().set_face_based(true);
-  viewer.launch();
+bool draw_callback(igl::opengl::glfw::Viewer &viewer) 
+{
+    draw(q, qdot, t);
+
+    return false;
+}
+
+int main(int argc, char* argv[])
+{
+    //run simulation in seperate thread to avoid slowing down the UI
+    std::thread simulation_thread(simulation_callback);
+    simulation_thread.detach();
+
+    //setup libigl viewer and activate 
+    Visualize::setup(q, qdot);
+    Visualize::viewer().callback_post_draw = &draw_callback;
+    Visualize::viewer().launch();
+
+    return 1; 
 }
