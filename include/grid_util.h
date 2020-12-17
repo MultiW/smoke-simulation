@@ -1,11 +1,6 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-/*
-  libigl style helper functions.
-*/
-
-
 //
 // Inputs:
 //   V    #V by 3 matrix of vertex representing a box

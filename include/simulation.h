@@ -1,8 +1,13 @@
 #ifndef SIMULATION_H
 #define SIMULATION_H
 
-#include <visualization.h>
+#include "visualization.h"
+#include "grid_util.h"
+
 #include <igl/grid.h>
+
+#include <Eigen/Geometry>
+
 
 // TODO: give more appropriate name for file
 
@@ -16,17 +21,43 @@ const Eigen::RowVector3d black(0.0,0.0,0.0);
 // Viewer data ids
 int smokeBoxId;
 
-inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double t) {
+inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double t) 
+{
 
 }
 
-inline void setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
+inline void createBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF)
+{
+//	boxV.resize(8, 3);
+//	boxV <<
+//		0, 0, 0,
+//		0, 0, 1,
+//		0, 1, 0,
+//		0, 1, 1,
+//		1, 0, 0,
+//		1, 0, 1,
+//		1, 1, 0,
+//		1, 1, 1;
+//	boxF.resize(12, 3);
+//	boxF <<
+//		0, 1, 3,
+//		3, 1, 2,
+////		0, 1, 2,
+////		2, 1, 3;
+
+	smokeBoxId = Visualize::addObjectToScene(boxV, boxF, orange);
+
+	Eigen::AlignedBox3d bounds;
+	bounds.extend(Eigen::Vector3d(0, 0, 0));
+	bounds.extend(Eigen::Vector3d(100, 100, 100));
+}
+
+inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) 
+{
 	// Add box
 	Eigen::MatrixXd boxV;
-	Eigen::MatrixXd boxF;
-	igl::readOBJ("../data/box.obj", boxV, boxF);
-	smokeBoxId = Visualize::addObjectToScene(boxV, boxF, orange);
-	// TODO: transform size of box
+	Eigen::MatrixXi boxF;
+	createBox(boxV, boxF);
 
 	// Add smoke
 	igl::grid(Eigen::Vector3d(100, 100, 100), q);
@@ -34,8 +65,8 @@ inline void setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::MatrixXd& qd
 	Visualize::addPointsToScene(smokeBoxId, q, yellow);
 }
 
-inline void draw(Eigen::Ref<const Eigen::VectorXd> q, Eigen::Ref<const Eigen::VectorXd> qdot, double t) {
-
+inline void draw(Eigen::Ref<const Eigen::MatrixXd> q, Eigen::Ref<const Eigen::MatrixXd> qdot, double t) {
+	// Necessary? Think it's only useful for skinning
 }
 
 #endif

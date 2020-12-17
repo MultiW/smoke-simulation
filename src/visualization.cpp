@@ -7,18 +7,22 @@ namespace Visualize
 	bool firstDataUsed = false;
 }
 
+igl::opengl::glfw::Viewer& Visualize::viewer()
+{
+	return g_viewer;
+}
+
 void draw_main_viewer_menu()
 {
 	// Draw parent menu content
 	Visualize::menu.draw_viewer_menu();
 }
 
-void Visualize::setup(const Eigen::VectorXd& q, const Eigen::VectorXd& qdot)
+void Visualize::setup(const Eigen::MatrixXd& q, const Eigen::MatrixXd& qdot)
 {
 	// Set up menu
 	g_viewer.plugins.push_back(&menu);
 	menu.callback_draw_viewer_menu = draw_main_viewer_menu;
-
 }
 
 int Visualize::addObjectToScene(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F, const Eigen::RowVector3d& color)

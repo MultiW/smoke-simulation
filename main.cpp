@@ -23,23 +23,25 @@ bool simulation_callback()
 	return false;
 }
 
-bool draw_callback(igl::opengl::glfw::Viewer &viewer) 
+bool draw_callback(igl::opengl::glfw::Viewer& viewer)
 {
-    draw(q, qdot, t);
+	draw(q, qdot, t);
 
-    return false;
+	return false;
 }
 
 int main(int argc, char* argv[])
 {
-    //run simulation in seperate thread to avoid slowing down the UI
-    std::thread simulation_thread(simulation_callback);
-    simulation_thread.detach();
+	simulation_setup(argc, argv, q, qdot);
 
-    //setup libigl viewer and activate 
-    Visualize::setup(q, qdot);
-    Visualize::viewer().callback_post_draw = &draw_callback;
-    Visualize::viewer().launch();
+	//run simulation in seperate thread to avoid slowing down the UI
+	std::thread simulation_thread(simulation_callback);
+	simulation_thread.detach();
 
-    return 1; 
+	//setup libigl viewer and activate 
+	Visualize::setup(q, qdot);
+	Visualize::viewer().callback_post_draw = &draw_callback;
+	Visualize::viewer().launch();
+
+	return 1;
 }
