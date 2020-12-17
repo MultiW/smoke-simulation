@@ -40,6 +40,11 @@ int Visualize::addObjectToScene(const Eigen::MatrixXd& V, const Eigen::MatrixXi&
 	return dataId;
 }
 
+void Visualize::updatePoints(int dataId, const Eigen::MatrixXd& V, const Eigen::RowVector3d& color)
+{
+	g_viewer.data(dataId).set_points(V, color);
+}
+
 void Visualize::setInvisible(int dataId, bool status)
 {
 	g_viewer.data(dataId).show_faces = !status;
@@ -57,10 +62,5 @@ int Visualize::addPointsToScene(const Eigen::MatrixXd& points, const Eigen::RowV
 
 	g_viewer.data(dataId).set_points(points, color);
 	return dataId;
-}
-
-void Visualize::setPoints(int dataId, const Eigen::MatrixXd& points, const Eigen::RowVector3d& color)
-{
-	g_viewer.data(dataId).set_points(points, color);
 }
 
