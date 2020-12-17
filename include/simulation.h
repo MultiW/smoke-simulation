@@ -39,6 +39,7 @@ inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::
 	transformVertices(boxV, boxBounds);
 
 	// Create smoke particles inside box
+	// TODO: perhaps randomly create N particles within a boundary
 	igl::grid(Eigen::Vector3d(20, 20, 20), q);
 
 	Eigen::AlignedBox3d smokeBounds;
