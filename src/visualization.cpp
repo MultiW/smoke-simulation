@@ -31,18 +31,36 @@ int Visualize::addObjectToScene(const Eigen::MatrixXd& V, const Eigen::MatrixXi&
 	{
 		g_viewer.append_mesh();
 	}
-	g_viewer.data().set_mesh(V, F);
-	g_viewer.data().set_colors(color);
-	return g_viewer.data().id;
+	firstDataUsed = true;
+	int dataId = g_viewer.data().id;
+
+	g_viewer.data(dataId).set_mesh(V, F);
+	g_viewer.data(dataId).set_colors(color);
+	g_viewer.data(dataId).set_face_based(true);
+	return dataId;
 }
 
-void Visualize::setInvisible(int dataId)
+void Visualize::setInvisible(int dataId, bool status)
 {
-	g_viewer.data(dataId).show_faces = false;
+	g_viewer.data(dataId).show_faces = !status;
 	// TODO: hide lines too
 }
 
-void Visualize::addPointsToScene(int dataId, const Eigen::MatrixXd& points, const Eigen::RowVector3d& color)
+int Visualize::addPointsToScene(const Eigen::MatrixXd& points, const Eigen::RowVector3d& color)
+{
+	if (firstDataUsed)
+	{
+		g_viewer.append_mesh();
+	}
+	firstDataUsed = true;
+	int dataId = g_viewer.data().id;
+
+	g_viewer.data(dataId).set_points(points, color);
+	return dataId;
+}
+
+void Visualize::setPoints(int dataId, const Eigen::MatrixXd& points, const Eigen::RowVector3d& color)
 {
 	g_viewer.data(dataId).set_points(points, color);
 }
+

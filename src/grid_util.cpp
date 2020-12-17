@@ -14,9 +14,7 @@ void createAlignedBox(const Eigen::MatrixXd &V, Eigen::AlignedBox3d &box) {
 	}
 }
 
-void transformVertices(const Eigen::MatrixXd &V, const Eigen::AlignedBox3d &newOrientation, bool keepSize, Eigen::MatrixXd &Vout) {
-	Vout.resize(V.rows(), 3);
-
+void transformVertices(Eigen::MatrixXd &V, const Eigen::AlignedBox3d &newOrientation, bool keepSize) {
 	Eigen::Vector3d corner1 = newOrientation.corner(newOrientation.BottomLeftFloor);
 	Eigen::Vector3d corner2 = newOrientation.corner(newOrientation.TopRightCeil);
 
@@ -34,62 +32,25 @@ void transformVertices(const Eigen::MatrixXd &V, const Eigen::AlignedBox3d &newO
 	if (!keepSize) {
 		scale.diagonal() << outDiag.cwiseQuotient(inDiag).array();
 	}
-	Vout = V * scale;
+	V *= scale;
 
 	// Rotate
 	inDiag = scale * inBLF - scale * inTRC;
 	Eigen::Matrix3d R = igl::rotation_matrix_from_directions(inDiag.normalized(), outDiag.normalized());
-	Vout *= R.transpose();
+	V *= R.transpose();
 
 	// Move V to desired location
 	Eigen::Vector3d translate = corner1 - R * (scale * inBLF);
-	for (int i = 0; i < Vout.rows(); i++) {
-		Vout.row(i) += translate.transpose();
-	}
-}
-
-void transformVertices(const Eigen::MatrixXd& V, const Eigen::AlignedBox3d& newOrientation, Eigen::MatrixXd& Vout) {
-	transformVertices(V, newOrientation, false, Vout);
-}
-
-void createVoxelGrid(
-	const Eigen::MatrixXd &V, 
-	Eigen::MatrixXd &centers, 
-	Eigen::MatrixXd &corners, 
-	Eigen::Vector3i &dimensions, 
-	Eigen::Vector3d &voxelSize
-) {
-	// Compute bounding box
-	Eigen::MatrixXd BV, BF;
-	igl::bounding_box(V, BV, BF);
-	Eigen::AlignedBox3d boundBox;
 	for (int i = 0; i < V.rows(); i++) {
-		boundBox.extend(V.row(i).transpose());
+		V.row(i) += translate.transpose();
 	}
-
-	// Create voxel grid (defined by center vertices of voxels)
-	Eigen::RowVector3i dimOut; // column vector of dimentions
-	igl::voxel_grid(boundBox, GRID_LEN, 0, centers, dimOut);
-	dimensions = dimOut.transpose();
-	Eigen::AlignedBox3d centersBox;
-	createAlignedBox(centers, centersBox);
-
-	Eigen::Vector3i one(1.0, 1.0, 1.0);
-	voxelSize = centersBox.sizes().cwiseQuotient((dimensions - one).cast<double>());
-
-	// Compute corner vertices of voxel grid
-	Eigen::MatrixXd defaultGrid;
-	Eigen::Vector3d dimCorners = (dimensions + one).cast<double>();
-	igl::grid(dimCorners, defaultGrid);
-
-	// scale default grid to voxel grid
-	Eigen::Vector3d outBLF = centersBox.corner(centersBox.BottomLeftFloor) - (voxelSize / 2.0);
-	Eigen::Vector3d outTRC = centersBox.corner(centersBox.TopRightCeil) + (voxelSize / 2.0);
-	Eigen::AlignedBox3d outBox(outBLF, outTRC);
-	transformVertices(defaultGrid, outBox, corners);
 }
 
-void alignToAxis(const Eigen::MatrixXd& V, Eigen::MatrixXd& alignedV) {
+void transformVertices(Eigen::MatrixXd& V, const Eigen::AlignedBox3d& newOrientation) {
+	transformVertices(V, newOrientation, false);
+}
+
+void alignToAxis(Eigen::MatrixXd& V) {
 	Eigen::AlignedBox3d inputBox;
 	createAlignedBox(V, inputBox);
 
@@ -99,5 +60,5 @@ void alignToAxis(const Eigen::MatrixXd& V, Eigen::MatrixXd& alignedV) {
 	igl::grid(dim, alignedGrid);
 	createAlignedBox(alignedGrid, alignedBox);
 
-	transformVertices(V, alignedBox, true, alignedV);
+	transformVertices(V, alignedBox, true);
 }
