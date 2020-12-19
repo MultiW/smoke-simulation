@@ -38,7 +38,11 @@ int Visualize::addObjectToScene(const Eigen::MatrixXd& V, const Eigen::MatrixXi&
 	g_viewer.data(dataId).set_colors(color);
 	g_viewer.data(dataId).set_face_based(true);
 	return dataId;
+
 }
+
+
+
 
 void Visualize::updatePoints(int dataId, const Eigen::MatrixXd& V, const Eigen::RowVector3d& color)
 {
