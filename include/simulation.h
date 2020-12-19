@@ -28,12 +28,7 @@ int boxId;
 // Update location and velocity of smoke particles
 inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double t)
 {
-	// TODO: DELETE. This is a mock simulation
-	Eigen::MatrixXd movement;
-	movement.resize(q.rows(), q.cols());
-	movement.setOnes();
-	movement *= dt * 3;
-	q += movement;
+	// TODO: update velocity and position using advection, external forces, and pressure projection
 }
 
 inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::MatrixXd& q)
