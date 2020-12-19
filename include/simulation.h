@@ -3,6 +3,8 @@
 
 #include "visualization.h"
 #include "grid_util.h"
+#include "external_forces.h"
+#include "advection.h"
 
 #include <igl/grid.h>
 
@@ -28,7 +30,13 @@ int boxId;
 // Update location and velocity of smoke particles
 inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double t)
 {
-	// TODO: update velocity and position using advection, external forces, and pressure projection
+	// Update position q
+	advection(q, qdot, dt);
+
+	// Update velocity qdot
+	external_forces(q, qdot, dt);
+	
+	// TODO: simulate pressure
 }
 
 inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::MatrixXd& q)
