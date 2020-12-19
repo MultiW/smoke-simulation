@@ -11,6 +11,7 @@
 #include <Eigen/Geometry>
 
 #include <stdio.h>
+#include <time.h>
 
 
 // TODO: give more appropriate name for file
@@ -70,6 +71,18 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::M
 
 	// Add smoke
 	smokeId = Visualize::addPointsToScene(q, white);
+
+	// Initialize velocity
+	qdot.resize(q.rows(), q.cols());
+	std::srand((unsigned) std::time(NULL));
+	for (int j = 0; j < qdot.cols(); j++)
+	{
+		for (int i = 0; i < qdot.rows(); i++)
+		{
+			// iterate in column-major order, the default order for Eigen matrix
+			qdot(i, j) = std::rand() / RAND_MAX;
+		}
+	}
 }
 
 inline void draw(Eigen::Ref<const Eigen::MatrixXd> q, Eigen::Ref<const Eigen::MatrixXd> qdot, double t)
