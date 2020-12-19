@@ -9,4 +9,4 @@
 //output
 //q updated position
 
-void advection(Eigen::VectorXd q, Eigen::VectorXd qdot, int dt);
+void advection(Eigen::VectorXd &q, Eigen::VectorXd &qdot, double dt);
