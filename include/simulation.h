@@ -12,6 +12,7 @@
 
 #include <stdio.h>
 #include <time.h>
+#include <iostream>
 
 
 // TODO: give more appropriate name for file
@@ -80,7 +81,7 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::M
 		for (int i = 0; i < qdot.rows(); i++)
 		{
 			// iterate in column-major order, the default order for Eigen matrix
-			qdot(i, j) = std::rand() / RAND_MAX;
+			qdot(i, j) = (double) std::rand() / RAND_MAX * 10;
 		}
 	}
 }
