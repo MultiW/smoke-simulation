@@ -2,11 +2,12 @@
 #define SIMULATION_H
 
 #include "visualization.h"
+
 #include "grid_util.h"
+#include "util.h"
 #include "external_forces.h"
 #include "advection.h"
 #include "staggered_grid.h"
-#include "util.h"
 
 #include <igl/grid.h>
 
