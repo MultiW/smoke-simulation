@@ -127,11 +127,11 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::M
 
 	// TODO: TEST. DELETE. START
 	Eigen::MatrixXd g;
-	igl::grid(Eigen::Vector3d(20, 20, 20), g);
+	igl::grid(Eigen::Vector3d(GRIDDIM, GRIDDIM, GRIDDIM), g);
 	transformVertices(g, boundary);
 	Visualize::addPointsToScene(g, blue);
 
-	double cellHalfLen = boundary.sizes()(0) / 19.0 / 2.0;
+	double cellHalfLen = boundary.sizes()(0) / GRIDDIM - 1 / 2.0;
 
 	Eigen::MatrixXd u, v, w, p;
 	u = g;
