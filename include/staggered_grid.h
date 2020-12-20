@@ -7,7 +7,8 @@
 typedef List3d<Point> Grid;
 
 class StaggeredGrid {
-	size_t dim;
+	// Number of points along each dimension
+	Eigen::Vector3i dim;
 
 	// Velocity grids
 	Grid uGrid;
@@ -17,7 +18,8 @@ class StaggeredGrid {
 	// Pressure grid
 	Grid pGrid;
 public:
-	StaggeredGrid(size_t dim);
+	StaggeredGrid();
+	StaggeredGrid(Eigen::Vector3i dim);
 	void computeVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);
 private:
 	void setGridVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);

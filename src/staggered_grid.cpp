@@ -1,11 +1,14 @@
 #include "staggered_grid.h"
 
-StaggeredGrid::StaggeredGrid(size_t dim) :
+StaggeredGrid::StaggeredGrid() {}
+
+StaggeredGrid::StaggeredGrid(Eigen::Vector3i dim) :
 	dim(dim),
-	uGrid(Grid(dim - 1, dim, dim)),
-	vGrid(Grid(dim, dim - 1, dim)),
-	wGrid(Grid(dim, dim, dim - 1)),
-	pGrid(Grid(dim - 1, dim - 1, dim - 1)) {
+	uGrid(Grid(dim(0) - 1, dim(1), dim(2))),
+	vGrid(Grid(dim(0), dim(1) - 1, dim(2))),
+	wGrid(Grid(dim(0), dim(1), dim(2) - 1)),
+	pGrid(Grid(dim(0) - 1, dim(1) - 1, dim(2) - 1))
+{
 
 }
 

@@ -21,8 +21,12 @@
 // TODO: give more appropriate name for file
 
 // Tuning parameters
-const Eigen::Vector3d boxSize(100, 100, 100); // NOTE: must be square
-const size_t GRIDDIM = 20; // Dimensions of the staggered grid used to compute pressure
+// dimensions of the smoke box
+const Eigen::Vector3i BOX_SIZE(200, 100, 100);
+// dimensions of staggered grid to compute pressure (entire vector must be factor of BOX_SIZE)
+const Eigen::Vector3i GRID_SIZE(20, 10, 10);
+// smoke particle count
+Eigen::Vector3d SMOKE_SIZE(20, 20, 20);
 
 // Predefined colors
 const Eigen::RowVector3d orange(1.0, 0.7, 0.2);
@@ -34,7 +38,7 @@ const Eigen::RowVector3d white(1.0, 1.0, 1.0);
 const Eigen::RowVector3d red(0.8, 0.2, 0.2);
 
 //Staggered Grid
-StaggeredGrid staggeredGrid(GRIDDIM);
+StaggeredGrid staggeredGrid;
 
 // Viewer data ids
 int smokeId;
@@ -62,11 +66,11 @@ inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::
 
 	// Create smoke particles inside box
 	// TODO: perhaps randomly create N particles within a boundary
-	igl::grid(Eigen::Vector3d(20, 20, 20), q);
+	igl::grid(SMOKE_SIZE, q);
 
 	Eigen::AlignedBox3d smokeBounds;
 	smokeBounds.extend(Eigen::Vector3d(5, 50, 5));
-	smokeBounds.extend(Eigen::Vector3d(95, 95, 95));
+	smokeBounds.extend(Eigen::Vector3d(BOX_SIZE(0) - 5, BOX_SIZE(1) - 5, BOX_SIZE(2) - 5));
 	transformVertices(q, smokeBounds);
 }
 
@@ -89,7 +93,7 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::M
 	// Define boundaries of box
 	Eigen::AlignedBox3d boundary;
 	boundary.extend(Eigen::Vector3d(0, 0, 0));
-	boundary.extend(boxSize);
+	boundary.extend(BOX_SIZE.cast<double>());
 
 	// Add box
 	Eigen::MatrixXd boxV;
@@ -105,37 +109,36 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::M
 	initializeVelocity(q, qdot);
 
 	// TODO: TEST. DELETE. START
-	Eigen::MatrixXd g;
-	igl::grid(Eigen::Vector3d(GRIDDIM, GRIDDIM, GRIDDIM), g);
-	transformVertices(g, boundary);
-	Visualize::addPointsToScene(g, blue);
+	Eigen::MatrixXd model;
+	igl::grid(GRID_SIZE, model);
+	transformVertices(model, boundary);
+	Visualize::addPointsToScene(model, blue);
 
-	double cellHalfLen = boundary.sizes()(0) / GRIDDIM - 1 / 2.0;
+	double cellHalfLen = boundary.sizes()(0) / (GRID_SIZE(0) - 1) / 2.0;
 
 	Eigen::MatrixXd u, v, w, p;
-	u = g;
+	u = model;
 	transformVertices(u, boundary);
 	addToCol(u, 0, cellHalfLen);
 	Visualize::addPointsToScene(u, yellow);
 
-	v = g;
+	v = model;
 	transformVertices(v, boundary);
 	addToCol(v, 1, cellHalfLen);
 	Visualize::addPointsToScene(v, orange);
 
-	w = g;
+	w = model;
 	transformVertices(w, boundary);
 	addToCol(w, 2, cellHalfLen);
 	Visualize::addPointsToScene(w, green);
 
-	p = g;
+	p = model;
 	transformVertices(p, boundary);
 	addToCol(p, 0, cellHalfLen);
 	addToCol(p, 1, cellHalfLen);
 	addToCol(p, 2, cellHalfLen);
 	Visualize::addPointsToScene(p, red);
 	// TODO: TEST. DELETE. END
-
 }
 
 inline void draw(Eigen::Ref<const Eigen::MatrixXd> q, Eigen::Ref<const Eigen::MatrixXd> qdot, double t)
