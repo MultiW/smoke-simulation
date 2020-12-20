@@ -109,15 +109,11 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::M
 	// TODO: TEST. DELETE. START
 	Eigen::MatrixXd g;
 	igl::grid(Eigen::Vector3d(20, 20, 20), g);
+	Eigen::AlignedBox3d gBox;
+	createAlignedBox(g, gBox);
 	transformVertices(g, boundary);
 	Visualize::addPointsToScene(g, blue);
 
-	Eigen::AlignedBox3d gBox;
-	createAlignedBox(g, gBox);
-
-	Eigen::VectorXd ones;
-	ones.resize(g.rows(), 1);
-	ones.setOnes();
 
 	double cellHalfLen = boundary.sizes()(0) / 19.0 / 2.0;
 
