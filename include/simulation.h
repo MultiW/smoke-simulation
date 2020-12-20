@@ -22,11 +22,13 @@
 
 // Tuning parameters
 // dimensions of the smoke box
-const Eigen::Vector3i BOX_SIZE(200, 100, 100);
-// dimensions of staggered grid to compute pressure (entire vector must be factor of BOX_SIZE)
-const Eigen::Vector3i GRID_SIZE(20, 10, 10);
+const Eigen::Vector3i BOX_DIM(200, 100, 100);
+// dimensions of staggered grid to compute pressure
+// - NOTE: GRID_DIM - 1 (along all dimensions) must have the same 
+// - propertions as BOX_DIM
+const Eigen::Vector3i GRID_DIM(21, 11, 11);
 // smoke particle count
-Eigen::Vector3d SMOKE_SIZE(20, 20, 20);
+Eigen::Vector3d SMOKE_DIM(20, 20, 20);
 
 // Predefined colors
 const Eigen::RowVector3d orange(1.0, 0.7, 0.2);
@@ -37,7 +39,7 @@ const Eigen::RowVector3d black(0.0, 0.0, 0.0);
 const Eigen::RowVector3d white(1.0, 1.0, 1.0);
 const Eigen::RowVector3d red(0.8, 0.2, 0.2);
 
-//Staggered Grid
+// Helper variables
 StaggeredGrid staggeredGrid;
 
 // Viewer data ids
@@ -66,15 +68,15 @@ inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::
 
 	// Create smoke particles inside box
 	// TODO: perhaps randomly create N particles within a boundary
-	igl::grid(SMOKE_SIZE, q);
+	igl::grid(SMOKE_DIM, q);
 
 	Eigen::AlignedBox3d smokeBounds;
 	smokeBounds.extend(Eigen::Vector3d(5, 50, 5));
-	smokeBounds.extend(Eigen::Vector3d(BOX_SIZE(0) - 5, BOX_SIZE(1) - 5, BOX_SIZE(2) - 5));
+	smokeBounds.extend(Eigen::Vector3d(BOX_DIM(0) - 5, BOX_DIM(1) - 5, BOX_DIM(2) - 5));
 	transformVertices(q, smokeBounds);
 }
 
-inline void initializeVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
+inline void initParticleVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
 {
 	qdot.resize(q.rows(), q.cols());
 	std::srand((unsigned) std::time(NULL));
@@ -88,57 +90,34 @@ inline void initializeVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
 	}
 }
 
+// Must be called first
 inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
 {
 	// Define boundaries of box
-	Eigen::AlignedBox3d boundary;
-	boundary.extend(Eigen::Vector3d(0, 0, 0));
-	boundary.extend(BOX_SIZE.cast<double>());
+	Eigen::AlignedBox3d smokeBox;
+	smokeBox.extend(Eigen::Vector3d(0, 0, 0));
+	smokeBox.extend(BOX_DIM.cast<double>());
 
 	// Add box
 	Eigen::MatrixXd boxV;
 	Eigen::MatrixXi boxF;
-	createSmokeBox(boxV, boxF, q, boundary);
+	createSmokeBox(boxV, boxF, q, smokeBox);
 	boxId = Visualize::addObjectToScene(boxV, boxF, orange);
 	Visualize::setInvisible(boxId, true);
 
-	// Add smoke
 	smokeId = Visualize::addPointsToScene(q, white);
 
-	// Initialize velocity
-	initializeVelocity(q, qdot);
+	initParticleVelocity(q, qdot);
 
-	// TODO: TEST. DELETE. START
-	Eigen::MatrixXd model;
-	igl::grid(GRID_SIZE, model);
-	transformVertices(model, boundary);
-	Visualize::addPointsToScene(model, blue);
+	staggeredGrid = StaggeredGrid(smokeBox, GRID_DIM);
 
-	double cellHalfLen = boundary.sizes()(0) / (GRID_SIZE(0) - 1) / 2.0;
-
+	// TODO: DELETE. Testing if initialization of staggered grid points is correct
 	Eigen::MatrixXd u, v, w, p;
-	u = model;
-	transformVertices(u, boundary);
-	addToCol(u, 0, cellHalfLen);
+	staggeredGrid.getGridPoints(u, v, w, p);
 	Visualize::addPointsToScene(u, yellow);
-
-	v = model;
-	transformVertices(v, boundary);
-	addToCol(v, 1, cellHalfLen);
 	Visualize::addPointsToScene(v, orange);
-
-	w = model;
-	transformVertices(w, boundary);
-	addToCol(w, 2, cellHalfLen);
 	Visualize::addPointsToScene(w, green);
-
-	p = model;
-	transformVertices(p, boundary);
-	addToCol(p, 0, cellHalfLen);
-	addToCol(p, 1, cellHalfLen);
-	addToCol(p, 2, cellHalfLen);
 	Visualize::addPointsToScene(p, red);
-	// TODO: TEST. DELETE. END
 }
 
 inline void draw(Eigen::Ref<const Eigen::MatrixXd> q, Eigen::Ref<const Eigen::MatrixXd> qdot, double t)
