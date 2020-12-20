@@ -1,7 +1,4 @@
-//includes here
+#include <Eigen/Core>
+#include <Eigen/Geometry>
 
-//input
-
-//output
-
-void pressure_projection();
+void pressure_projection(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, Eigen::AlignedBox3d& boundaries, double pressure);

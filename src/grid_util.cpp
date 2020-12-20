@@ -14,15 +14,13 @@ void createAlignedBox(const Eigen::MatrixXd &V, Eigen::AlignedBox3d &box) {
 	}
 }
 
-void transformVertices(Eigen::MatrixXd &V, const Eigen::AlignedBox3d &newOrientation, bool keepSize) {
+void transformVertices(Eigen::MatrixXd &V, const Eigen::AlignedBox3d &currOrientation, const Eigen::AlignedBox3d &newOrientation, bool keepSize) {
 	Eigen::Vector3d corner1 = newOrientation.corner(newOrientation.BottomLeftFloor);
 	Eigen::Vector3d corner2 = newOrientation.corner(newOrientation.TopRightCeil);
 
 	// Compute diagonals of input and output grids
-	Eigen::AlignedBox<double, 3> inBox;
-	createAlignedBox(V, inBox);
-	Eigen::Vector3d inBLF = inBox.corner(inBox.BottomLeftFloor);
-	Eigen::Vector3d inTRC = inBox.corner(inBox.TopRightCeil);
+	Eigen::Vector3d inBLF = currOrientation.corner(currOrientation.BottomLeftFloor);
+	Eigen::Vector3d inTRC = currOrientation.corner(currOrientation.TopRightCeil);
 	Eigen::Vector3d inDiag = inBLF - inTRC;
 
 	Eigen::Vector3d outDiag = corner1 - corner2;
@@ -46,6 +44,12 @@ void transformVertices(Eigen::MatrixXd &V, const Eigen::AlignedBox3d &newOrienta
 	}
 }
 
+void transformVertices(Eigen::MatrixXd &V, const Eigen::AlignedBox3d &newOrientation, bool keepSize) {
+	Eigen::AlignedBox<double, 3> currOrientation;
+	createAlignedBox(V, currOrientation);
+	transformVertices(V, currOrientation, newOrientation, keepSize);
+}
+
 void transformVertices(Eigen::MatrixXd& V, const Eigen::AlignedBox3d& newOrientation) {
 	transformVertices(V, newOrientation, false);
 }
@@ -62,3 +66,4 @@ void alignToAxis(Eigen::MatrixXd& V) {
 
 	transformVertices(V, alignedBox, true);
 }
+

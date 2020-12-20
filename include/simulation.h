@@ -17,6 +17,9 @@
 
 // TODO: give more appropriate name for file
 
+// Tuning parameters
+const Eigen::Vector3d boxSize(100, 100, 100); // NOTE: must be square
+
 // Predefined colors
 const Eigen::RowVector3d orange(1.0, 0.7, 0.2);
 const Eigen::RowVector3d yellow(1.0, 0.9, 0.2);
@@ -24,6 +27,7 @@ const Eigen::RowVector3d blue(0.2, 0.3, 0.8);
 const Eigen::RowVector3d green(0.2, 0.6, 0.3);
 const Eigen::RowVector3d black(0.0, 0.0, 0.0);
 const Eigen::RowVector3d white(1.0, 1.0, 1.0);
+const Eigen::RowVector3d red(0.8, 0.2, 0.2);
 
 // Viewer data ids
 int smokeId;
@@ -32,24 +36,22 @@ int boxId;
 // Update location and velocity of smoke particles
 inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double t)
 {
-	// Update position q
-	advection(q, qdot, dt);
+	// TODO: turned off simulation for now
+	//// Update position q
+	//advection(q, qdot, dt);
 
-	// Update velocity qdot
-	external_forces(q, qdot, dt);
-	
-	// TODO: simulate pressure
+	//// Update velocity qdot
+	//external_forces(q, qdot, dt);
+	//
+	//// TODO: simulate pressure
 }
 
-inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::MatrixXd& q)
+inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::MatrixXd& q, Eigen::AlignedBox3d& boundary)
 {
 	// Create box
 	igl::read_triangle_mesh("../data/box.obj", boxV, boxF);
 
-	Eigen::AlignedBox3d boxBounds;
-	boxBounds.extend(Eigen::Vector3d(0, 0, 0));
-	boxBounds.extend(Eigen::Vector3d(100, 100, 100));
-	transformVertices(boxV, boxBounds);
+	transformVertices(boxV, boundary);
 
 	// Create smoke particles inside box
 	// TODO: perhaps randomly create N particles within a boundary
@@ -61,19 +63,8 @@ inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::
 	transformVertices(q, smokeBounds);
 }
 
-inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
+inline void initializeVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
 {
-	// Add box
-	Eigen::MatrixXd boxV;
-	Eigen::MatrixXi boxF;
-	createSmokeBox(boxV, boxF, q);
-	boxId = Visualize::addObjectToScene(boxV, boxF, orange);
-	Visualize::setInvisible(boxId, true);
-
-	// Add smoke
-	smokeId = Visualize::addPointsToScene(q, white);
-
-	// Initialize velocity
 	qdot.resize(q.rows(), q.cols());
 	std::srand((unsigned) std::time(NULL));
 	for (int j = 0; j < qdot.cols(); j++)
@@ -81,9 +72,78 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::M
 		for (int i = 0; i < qdot.rows(); i++)
 		{
 			// iterate in column-major order, the default order for Eigen matrix
-			qdot(i, j) = (double) std::rand() / RAND_MAX * 10;
+			qdot(i, j) = (double) std::rand() / RAND_MAX * 100.0;
 		}
 	}
+}
+
+// TODO: CREATE NEW UTIL FUNC
+inline void addToCol(Eigen::MatrixXd& matrix, int columnIndex, double value)
+{
+	Eigen::VectorXd ones;
+	ones.resize(matrix.rows(), 1);
+	matrix.col(columnIndex) += ones * value;
+}
+
+inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
+{
+	// Define boundaries of box
+	Eigen::AlignedBox3d boundary;
+	boundary.extend(Eigen::Vector3d(0, 0, 0));
+	boundary.extend(boxSize);
+
+	// Add box
+	Eigen::MatrixXd boxV;
+	Eigen::MatrixXi boxF;
+	createSmokeBox(boxV, boxF, q, boundary);
+	boxId = Visualize::addObjectToScene(boxV, boxF, orange);
+	Visualize::setInvisible(boxId, true);
+
+	// Add smoke
+	smokeId = Visualize::addPointsToScene(q, white);
+
+	// Initialize velocity
+	initializeVelocity(q, qdot);
+
+	// TODO: TEST. DELETE. START
+	Eigen::MatrixXd g;
+	igl::grid(Eigen::Vector3d(20, 20, 20), g);
+	transformVertices(g, boundary);
+	Visualize::addPointsToScene(g, blue);
+
+	Eigen::AlignedBox3d gBox;
+	createAlignedBox(g, gBox);
+
+	Eigen::VectorXd ones;
+	ones.resize(g.rows(), 1);
+	ones.setOnes();
+
+	double cellHalfLen = boundary.sizes()(0) / 19.0 / 2.0;
+
+	Eigen::MatrixXd u, v, w, p;
+
+	igl::grid(Eigen::Vector3d(19, 20, 20), u);
+	transformVertices(u, gBox, boundary, false);
+	addToCol(u, 0, cellHalfLen);
+	Visualize::addPointsToScene(u, yellow);
+
+	igl::grid(Eigen::Vector3d(20, 19, 20), v);
+	transformVertices(v, gBox, boundary, false);
+	addToCol(u, 1, cellHalfLen);
+	Visualize::addPointsToScene(v, orange);
+
+	igl::grid(Eigen::Vector3d(20, 20, 19), w);
+	transformVertices(w, gBox, boundary, false);
+	addToCol(u, 2, cellHalfLen);
+	Visualize::addPointsToScene(w, green);
+
+	igl::grid(Eigen::Vector3d(19, 19, 19), p);
+	transformVertices(p, gBox, boundary, false);
+	addToCol(u, 0, cellHalfLen);
+	addToCol(u, 1, cellHalfLen);
+	addToCol(u, 2, cellHalfLen);
+	Visualize::addPointsToScene(p, red);
+	// TODO: TEST. DELETE. END
 }
 
 inline void draw(Eigen::Ref<const Eigen::MatrixXd> q, Eigen::Ref<const Eigen::MatrixXd> qdot, double t)
