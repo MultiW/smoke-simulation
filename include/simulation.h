@@ -86,6 +86,18 @@ inline void addToCol(Eigen::MatrixXd& matrix, int columnIndex, double value)
 	matrix.col(columnIndex) += ones * value;
 }
 
+inline void createGridAtOrigin(Eigen::Vector3d& dim, Eigen::MatrixXd& g)
+{
+	igl::grid(dim, g);
+	Eigen::AlignedBox3d gridBox;
+	createAlignedBox(g, gridBox);
+
+	Eigen::AlignedBox3d originAlignedBox;
+	originAlignedBox.extend(Eigen::Vector3d(0, 0, 0));
+	originAlignedBox.extend(gridBox.sizes());
+	transformVertices(g, originAlignedBox);
+}
+
 inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
 {
 	// Define boundaries of box
@@ -109,33 +121,29 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::M
 	// TODO: TEST. DELETE. START
 	Eigen::MatrixXd g;
 	igl::grid(Eigen::Vector3d(20, 20, 20), g);
-	Eigen::AlignedBox3d gBox;
-	createAlignedBox(g, gBox);
 	transformVertices(g, boundary);
 	Visualize::addPointsToScene(g, blue);
-
 
 	double cellHalfLen = boundary.sizes()(0) / 19.0 / 2.0;
 
 	Eigen::MatrixXd u, v, w, p;
-
-	igl::grid(Eigen::Vector3d(19, 20, 20), u);
-	transformVertices(u, gBox, boundary, false);
+	u = g;
+	transformVertices(u, boundary);
 	addToCol(u, 0, cellHalfLen);
 	Visualize::addPointsToScene(u, yellow);
 
-	igl::grid(Eigen::Vector3d(20, 19, 20), v);
-	transformVertices(v, gBox, boundary, false);
+	v = g;
+	transformVertices(v, boundary);
 	addToCol(v, 1, cellHalfLen);
 	Visualize::addPointsToScene(v, orange);
 
-	igl::grid(Eigen::Vector3d(20, 20, 19), w);
-	transformVertices(w, gBox, boundary, false);
+	w = g;
+	transformVertices(w, boundary);
 	addToCol(w, 2, cellHalfLen);
 	Visualize::addPointsToScene(w, green);
 
-	igl::grid(Eigen::Vector3d(19, 19, 19), p);
-	transformVertices(p, gBox, boundary, false);
+	p = g;
+	transformVertices(p, boundary);
 	addToCol(p, 0, cellHalfLen);
 	addToCol(p, 1, cellHalfLen);
 	addToCol(p, 2, cellHalfLen);
