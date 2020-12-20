@@ -17,12 +17,9 @@ void createAlignedBox(const Eigen::MatrixXd& V, Eigen::AlignedBox3d& box);
 // - Rotations are at most 90 degrees. The input parameters do not allow definitions of larger rotations
 //
 // Inputs:
-//   V                #V by 3 matrix of vertices
-//   currOrientation  bounding box of V
-//   newOrientation   desired bounding box that transformed V should be in
-//   keepSize         boolean indicating whether Vout should be the same size as V
-void transformVertices(Eigen::MatrixXd& V, const Eigen::AlignedBox3d& currOrientation, const Eigen::AlignedBox3d& newOrientation, bool keepSize);
-
+//   V               #V by 3 matrix of vertices
+//   newOrientation  desired bounding box that transformed V should be in
+//   keepSize        boolean indicating whether Vout should be the same size as V
 void transformVertices(Eigen::MatrixXd& V, const Eigen::AlignedBox3d &newOrientation,  bool keepSize);
 
 // keepSize = false by default
