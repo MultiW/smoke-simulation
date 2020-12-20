@@ -1,20 +1,30 @@
 #include "staggered_grid.h"
 
+StaggeredGrid::StaggeredGrid(size_t dim) :
+	dim(dim),
+	uGrid(Grid(dim - 1, dim, dim)),
+	vGrid(Grid(dim, dim - 1, dim)),
+	wGrid(Grid(dim, dim, dim - 1)),
+	pGrid(Grid(dim - 1, dim - 1, dim - 1)) {
 
-
-
-
-StaggeredGrid::StaggeredGrid(int dim): dim(dim) {
-	this->uGrid.resize(dim - 1, dim, dim);
-	this->vGrid.resize(dim, dim - 1, dim);
-	this->wGrid.resize(dim, dim, dim - 1);
-	this->pGrid.resize(dim - 1, dim - 1, dim - 1);
 }
 
-void StaggeredGrid::initVelocities(Eigen::MatrixXd &q, Eigen::MatrixXd &qdot) {
+void StaggeredGrid::setGridVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
 	//TODO interpolate qdot into grids
 }
 
-void StaggeredGrid::updateGrids() {
+void StaggeredGrid::getVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
+	// TODO: trillinear interpolation
+}
+
+
+void StaggeredGrid::updateVelocityAndPressure() {
 
 }
+
+void StaggeredGrid::computeVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
+	this->setGridVelocities(q, qdot);
+	this->updateVelocityAndPressure();
+	this->getVelocities(q, qdot);
+}
+

@@ -1,5 +1,5 @@
-#ifndef  VISUALIZATION_H
-#define  VISUALIZATION_H
+#ifndef VISUALIZATION_H
+#define VISUALIZATION_H
 
 #include <Eigen/Dense>
 

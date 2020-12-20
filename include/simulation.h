@@ -6,6 +6,7 @@
 #include "external_forces.h"
 #include "advection.h"
 #include "staggered_grid.h"
+#include "util.h"
 
 #include <igl/grid.h>
 
@@ -20,7 +21,8 @@
 
 // Tuning parameters
 const Eigen::Vector3d boxSize(100, 100, 100); // NOTE: must be square
-const int GRIDDIM = 20;
+const size_t GRIDDIM = 20; // Dimensions of the staggered grid used to compute pressure
+
 // Predefined colors
 const Eigen::RowVector3d orange(1.0, 0.7, 0.2);
 const Eigen::RowVector3d yellow(1.0, 0.9, 0.2);
@@ -40,17 +42,14 @@ int boxId;
 // Update location and velocity of smoke particles
 inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double t)
 {
-	// TODO: turned off simulation for now
-	//// Update position q
-	//advection(q, qdot, dt);
+	// Update position q
+	advection(q, qdot, dt);
 
-	//// Update velocity qdot
-	//external_forces(q, qdot, dt);
-	//
+	// Update velocity qdot
+	external_forces(q, qdot, dt);
+
 	// simulate pressure
-	staggeredGrid.initVelocities(q, qdot);
-	staggeredGrid.updateGrids();
-
+	staggeredGrid.computeVelocity(q, qdot);
 }
 
 inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::MatrixXd& q, Eigen::AlignedBox3d& boundary)
@@ -82,27 +81,6 @@ inline void initializeVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
 			qdot(i, j) = (double) std::rand() / RAND_MAX * 100.0;
 		}
 	}
-}
-
-// TODO: CREATE NEW UTIL FUNC
-inline void addToCol(Eigen::MatrixXd& matrix, int columnIndex, double value)
-{
-	Eigen::VectorXd ones;
-	ones.resize(matrix.rows(), 1);
-	ones.setOnes();
-	matrix.col(columnIndex) += ones * value;
-}
-
-inline void createGridAtOrigin(Eigen::Vector3d& dim, Eigen::MatrixXd& g)
-{
-	igl::grid(dim, g);
-	Eigen::AlignedBox3d gridBox;
-	createAlignedBox(g, gridBox);
-
-	Eigen::AlignedBox3d originAlignedBox;
-	originAlignedBox.extend(Eigen::Vector3d(0, 0, 0));
-	originAlignedBox.extend(gridBox.sizes());
-	transformVertices(g, originAlignedBox);
 }
 
 inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
