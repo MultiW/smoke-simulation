@@ -21,6 +21,7 @@ bool simulation_callback()
 		t += dt;
 	}
 	return false;
+	
 }
 
 bool draw_callback(igl::opengl::glfw::Viewer& viewer)

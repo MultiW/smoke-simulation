@@ -5,6 +5,7 @@
 #include "grid_util.h"
 #include "external_forces.h"
 #include "advection.h"
+#include "staggered_grid.h"
 
 #include <igl/grid.h>
 
@@ -19,7 +20,7 @@
 
 // Tuning parameters
 const Eigen::Vector3d boxSize(100, 100, 100); // NOTE: must be square
-
+const int GRIDDIM = 20;
 // Predefined colors
 const Eigen::RowVector3d orange(1.0, 0.7, 0.2);
 const Eigen::RowVector3d yellow(1.0, 0.9, 0.2);
@@ -28,6 +29,9 @@ const Eigen::RowVector3d green(0.2, 0.6, 0.3);
 const Eigen::RowVector3d black(0.0, 0.0, 0.0);
 const Eigen::RowVector3d white(1.0, 1.0, 1.0);
 const Eigen::RowVector3d red(0.8, 0.2, 0.2);
+
+//Staggered Grid
+StaggeredGrid staggeredGrid(GRIDDIM);
 
 // Viewer data ids
 int smokeId;
@@ -43,7 +47,10 @@ inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, doubl
 	//// Update velocity qdot
 	//external_forces(q, qdot, dt);
 	//
-	//// TODO: simulate pressure
+	// simulate pressure
+	staggeredGrid.initVelocities(q, qdot);
+	staggeredGrid.updateGrids();
+
 }
 
 inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::MatrixXd& q, Eigen::AlignedBox3d& boundary)
@@ -119,28 +126,29 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::M
 
 	Eigen::MatrixXd u, v, w, p;
 
-	igl::grid(Eigen::Vector3d(19, 20, 20), u);
+	igl::grid(Eigen::Vector3d(GRIDDIM - 1, GRIDDIM, GRIDDIM), u);
 	transformVertices(u, gBox, boundary, false);
 	addToCol(u, 0, cellHalfLen);
 	Visualize::addPointsToScene(u, yellow);
 
-	igl::grid(Eigen::Vector3d(20, 19, 20), v);
+	igl::grid(Eigen::Vector3d(GRIDDIM, GRIDDIM - 1, GRIDDIM), v);
 	transformVertices(v, gBox, boundary, false);
 	addToCol(v, 1, cellHalfLen);
 	Visualize::addPointsToScene(v, orange);
 
-	igl::grid(Eigen::Vector3d(20, 20, 19), w);
+	igl::grid(Eigen::Vector3d(GRIDDIM, GRIDDIM, GRIDDIM - 1), w);
 	transformVertices(w, gBox, boundary, false);
 	addToCol(w, 2, cellHalfLen);
 	Visualize::addPointsToScene(w, green);
 
-	igl::grid(Eigen::Vector3d(19, 19, 19), p);
+	igl::grid(Eigen::Vector3d(GRIDDIM - 1, GRIDDIM - 1, GRIDDIM - 1), p);
 	transformVertices(p, gBox, boundary, false);
 	addToCol(p, 0, cellHalfLen);
 	addToCol(p, 1, cellHalfLen);
 	addToCol(p, 2, cellHalfLen);
 	Visualize::addPointsToScene(p, red);
 	// TODO: TEST. DELETE. END
+
 }
 
 inline void draw(Eigen::Ref<const Eigen::MatrixXd> q, Eigen::Ref<const Eigen::MatrixXd> qdot, double t)
