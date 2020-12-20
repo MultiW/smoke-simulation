@@ -82,6 +82,7 @@ inline void addToCol(Eigen::MatrixXd& matrix, int columnIndex, double value)
 {
 	Eigen::VectorXd ones;
 	ones.resize(matrix.rows(), 1);
+	ones.setOnes();
 	matrix.col(columnIndex) += ones * value;
 }
 
@@ -129,19 +130,19 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::M
 
 	igl::grid(Eigen::Vector3d(20, 19, 20), v);
 	transformVertices(v, gBox, boundary, false);
-	addToCol(u, 1, cellHalfLen);
+	addToCol(v, 1, cellHalfLen);
 	Visualize::addPointsToScene(v, orange);
 
 	igl::grid(Eigen::Vector3d(20, 20, 19), w);
 	transformVertices(w, gBox, boundary, false);
-	addToCol(u, 2, cellHalfLen);
+	addToCol(w, 2, cellHalfLen);
 	Visualize::addPointsToScene(w, green);
 
 	igl::grid(Eigen::Vector3d(19, 19, 19), p);
 	transformVertices(p, gBox, boundary, false);
-	addToCol(u, 0, cellHalfLen);
-	addToCol(u, 1, cellHalfLen);
-	addToCol(u, 2, cellHalfLen);
+	addToCol(p, 0, cellHalfLen);
+	addToCol(p, 1, cellHalfLen);
+	addToCol(p, 2, cellHalfLen);
 	Visualize::addPointsToScene(p, red);
 	// TODO: TEST. DELETE. END
 }
