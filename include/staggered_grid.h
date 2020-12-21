@@ -1,10 +1,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-#include "point.h"
-#include "list3d.h"
-
-typedef List3d<Point> Grid;
+#include "grid.h"
 
 class StaggeredGrid {
 	// Number of points along each dimension
