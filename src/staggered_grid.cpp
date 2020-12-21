@@ -2,6 +2,10 @@
 #include "util.h"
 #include "grid_util.h"
 
+#include <Eigen/Sparse>
+#include <Eigen/IterativeLinearSolvers>
+
+
 #include <igl/grid.h>
 
 #include <stdio.h>
@@ -9,6 +13,7 @@
 #include <algorithm>
 #include <set>
 
+typedef Eigen::Triplet<double> T;
 
 StaggeredGrid::StaggeredGrid() {}
 
@@ -154,8 +159,13 @@ void StaggeredGrid::getVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
 }
 
 
-void StaggeredGrid::updateVelocityAndPressure() {
+void StaggeredGrid::updateVelocityAndPressure(double dt, double density) {
 	// Update the pressure
+	
+	//update parameters where this is called for dt and density
+
+	int gridSize = this->dim(0) * this->dim(1) * this->dim(2);
+
 	double gridGranularity = getCellSize();
 	Eigen::MatrixXd D;
 	Eigen::VectorXd pj, B, qj;
@@ -174,22 +184,54 @@ void StaggeredGrid::updateVelocityAndPressure() {
 		0, 0, -invy, 0, invy, 0, 0,
 		0, 0, invz, 0, 0, -invz, 0,
 		0, 0, -invz, 0, 0, 0, invz;
+	Eigen::VectorXd q, Aj,p;
+
+	Aj.resize(7);
+	Aj.setZero();
+	Aj = B.transpose()* D;
+
+	Eigen::SparseMatrix<double> A;
+	std::vector<T> coefficients;
+
+	A.resize(gridSize, gridSize);
+	A.setZero();
+
+	q.resize(gridSize);
+	q.setZero();
+	qj.resize(6);
+	qj.setZero();
 
 	for (int i = 0; i < dim(0) - 1; i++) {
 		for (int j = 0; j < dim(1) - 1; j++) {
 			for (int k = 0; k < dim(2) - 1; k++) {
 				qj << uGrid(i, j, k).value, uGrid(i + 1, j, k).value, vGrid(i, j, k).value, vGrid(i, j + 1, k).value, wGrid(i, j, k).value, wGrid(i, j, k + 1).value;
-				pj << pGrid(i - 1, j, k).value, pGrid(i + 1, j, k).value, pGrid(i, j, k).value, pGrid(i, j - 1, k).value, pGrid(i, j + 1, k).value, pGrid(i, j, k - 1).value, pGrid(i, j, k + 1).value;
+				//pj << pGrid(i - 1, j, k).value, pGrid(i + 1, j, k).value, pGrid(i, j, k).value, pGrid(i, j - 1, k).value, pGrid(i, j + 1, k).value, pGrid(i, j, k - 1).value, pGrid(i, j, k + 1).value;
+				q(mapTo1d(i, j, k, this->dim(0), this->dim(1), this->dim(2))) = (B.transpose()*qj)(0)*density/dt;
+				int Arow = mapTo1d(i, j, k, this->dim(0),this->dim(1), this->dim(2));
+				//Figure out borders
+				coefficients.push_back(T(Arow, mapTo1d(i - 1, j, k, this->dim(0), this->dim(1), this->dim(2)), Aj(0)));
+				coefficients.push_back(T(Arow, mapTo1d(i + 1, j, k, this->dim(0), this->dim(1), this->dim(2)), Aj(1)));
+				coefficients.push_back(T(Arow, mapTo1d(i, j, k, this->dim(0), this->dim(1), this->dim(2)), Aj(2)));
+				coefficients.push_back(T(Arow, mapTo1d(i, j - 1, k, this->dim(0), this->dim(1), this->dim(2)), Aj(3)));
+				coefficients.push_back(T(Arow, mapTo1d(i, j + 1, k, this->dim(0), this->dim(1), this->dim(2)), Aj(4)));
+				coefficients.push_back(T(Arow, mapTo1d(i, j, k - 1, this->dim(0), this->dim(1), this->dim(2)), Aj(5)));
+				coefficients.push_back(T(Arow, mapTo1d(i, j, k + 1, this->dim(0), this->dim(1), this->dim(2)), Aj(6)));
 			}
 		}
 	}
 	
-	
+	A.setFromTriplets(coefficients.begin(), coefficients.end());
+
+	Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower | Eigen::Upper> cg;
+	cg.compute(A);
+	p.resize(gridSize);
+	p.setZero();
+	p = cg.solve(q);	
 }
 
-void StaggeredGrid::computeVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
+void StaggeredGrid::computeVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double density) {
 	this->setGridVelocities(q, qdot);
-	this->updateVelocityAndPressure();
+	this->updateVelocityAndPressure(dt, density);
 	this->getVelocities(q, qdot);
 }
 

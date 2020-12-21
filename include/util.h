@@ -16,4 +16,8 @@ void flatten3d(Eigen::VectorXd& newArray, Grid &grid);
 
 void unflatten(Grid &grid, Eigen::VectorXd &vector);
 
+int mapTo1d(int i, int j, int k, int d1, int d2, int d3);
+
+Eigen::Vector3d mapTo3d(int ind, int d1, int d2, int d3);
+
 #endif

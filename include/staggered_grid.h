@@ -20,7 +20,7 @@ class StaggeredGrid {
 public:
 	StaggeredGrid();
 	StaggeredGrid(const Eigen::AlignedBox3d& box, const Eigen::Vector3i& dim);
-	void computeVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);
+	void computeVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double density);
 
 	// For testing
 	void getGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);
@@ -33,5 +33,5 @@ private:
 	void setGridVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);
 	void interpolateGrid(Eigen::MatrixXd& q, Eigen::VectorXd& qdotCol, Grid& grid);
 	void getVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);
-	void updateVelocityAndPressure();
+	void updateVelocityAndPressure(double dt, double density);
 };
