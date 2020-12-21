@@ -122,7 +122,11 @@ void StaggeredGrid::updateVelocityAndPressure(double dt, double density)
 
 void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt, double density)
 {
-	int gridSize = this->dim(0) * this->dim(1) * this->dim(2);
+	// Number of cells in staggered grid (aka number of pressure points)
+	int d1 = this->pGrid.size(0);
+	int d2 = this->pGrid.size(1);
+	int d3 = this->pGrid.size(2);
+	int gridSize = d1 * d2 * d3;
 
 	double gridGranularity = getCellSize();
 	double invx = 1 / gridGranularity;
@@ -150,7 +154,7 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt, double density
 	Eigen::VectorXd Aj;
 	Aj.resize(7);
 	Aj.setZero();
-	Aj = B.transpose()* D;
+	Aj = B * D;
 
 	// global equation variable: p, f
 	Eigen::VectorXd f;
@@ -171,9 +175,9 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt, double density
 	fj.setZero();
 	pj.resize(7);
 
-	for (int i = 0; i < dim(0) - 1; i++) {
-		for (int j = 0; j < dim(1) - 1; j++) {
-			for (int k = 0; k < dim(2) - 1; k++) {
+	for (int i = 0; i < d1; i++) {
+		for (int j = 0; j < d2; j++) {
+			for (int k = 0; k < d3; k++) {
 				fj << 
 					uGrid(i, j, k).value, 
 					uGrid(i + 1, j, k).value, 
@@ -185,17 +189,17 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt, double density
 				//pj << pGrid(i - 1, j, k).value, pGrid(i + 1, j, k).value, pGrid(i, j, k).value, pGrid(i, j - 1, k).value, pGrid(i, j + 1, k).value, pGrid(i, j, k - 1).value, pGrid(i, j, k + 1).value;
 
 				// Assemble to global A, f 
-				int row = mapTo1d(i, j, k, this->dim(0),this->dim(1), this->dim(2));
-				f(row) = (B.transpose() * fj)(0) * density / dt;
+				int row = mapTo1d(i, j, k, d1, d2, d3);
+				f(row) = (B * fj)(0) * density / dt;
 
 				//TODO: Figure out borders
-				coefficients.push_back(T(row, mapTo1d(i - 1, j, k, this->dim(0), this->dim(1), this->dim(2)), Aj(0)));
-				coefficients.push_back(T(row, mapTo1d(i + 1, j, k, this->dim(0), this->dim(1), this->dim(2)), Aj(1)));
-				coefficients.push_back(T(row, mapTo1d(i, j, k, this->dim(0), this->dim(1), this->dim(2)), Aj(2)));
-				coefficients.push_back(T(row, mapTo1d(i, j - 1, k, this->dim(0), this->dim(1), this->dim(2)), Aj(3)));
-				coefficients.push_back(T(row, mapTo1d(i, j + 1, k, this->dim(0), this->dim(1), this->dim(2)), Aj(4)));
-				coefficients.push_back(T(row, mapTo1d(i, j, k - 1, this->dim(0), this->dim(1), this->dim(2)), Aj(5)));
-				coefficients.push_back(T(row, mapTo1d(i, j, k + 1, this->dim(0), this->dim(1), this->dim(2)), Aj(6)));
+				coefficients.push_back(T(row, mapTo1d(i - 1, j, k, d1, d2, d3), Aj(0)));
+				coefficients.push_back(T(row, mapTo1d(i + 1, j, k, d1, d2, d3), Aj(1)));
+				coefficients.push_back(T(row, mapTo1d(i, j, k, d1, d2, d3), Aj(2)));
+				coefficients.push_back(T(row, mapTo1d(i, j - 1, k, d1, d2, d3), Aj(3)));
+				coefficients.push_back(T(row, mapTo1d(i, j + 1, k, d1, d2, d3), Aj(4)));
+				coefficients.push_back(T(row, mapTo1d(i, j, k - 1, d1, d2, d3), Aj(5)));
+				coefficients.push_back(T(row, mapTo1d(i, j, k + 1, d1, d2, d3), Aj(6)));
 			}
 		}
 	}
