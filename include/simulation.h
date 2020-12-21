@@ -20,15 +20,22 @@
 
 // TODO: give more appropriate name for file
 
-// Tuning parameters
+// =========================
+// === Tuning parameters ===
+// =========================
 // dimensions of the smoke box
 const Eigen::Vector3i BOX_DIM(200, 100, 100);
+
 // dimensions of staggered grid to compute pressure
 // - NOTE: GRID_DIM - 1 (along all dimensions) must have the same 
 // - propertions as BOX_DIM
 const Eigen::Vector3i GRID_DIM(21, 11, 11);
+
 // smoke particle count
 Eigen::Vector3d SMOKE_DIM(20, 20, 20);
+
+double density = 6.9;
+// =========================
 
 // Predefined colors
 const Eigen::RowVector3d orange(1.0, 0.7, 0.2);
@@ -49,8 +56,6 @@ int boxId;
 // Update location and velocity of smoke particles
 inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double t)
 {	
-	//TODO: FIX this
-	double density = 6.9;
 	// TODO: add boundary checks on points
 
 	// Update position q
@@ -60,7 +65,7 @@ inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, doubl
 	external_forces(q, qdot, dt);
 
 	// simulate pressure
-	staggeredGrid.computeVelocity(q, qdot, dt, density);
+	staggeredGrid.updateSimulation(q, qdot, dt, density);
 }
 
 inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::MatrixXd& q, Eigen::AlignedBox3d& boundary)

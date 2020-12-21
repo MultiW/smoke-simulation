@@ -1,6 +1,8 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
+#include "grid.h"
+
 //
 // Inputs:
 //   V    #V by 3 matrix of vertex representing a box
@@ -33,3 +35,9 @@ void transformVertices(Eigen::MatrixXd& V, const Eigen::AlignedBox3d &newOrienta
 // Outputs:
 //   alignedV  #vertices by 3 matrix of vertices transformed to align to axis planes
 void alignToAxis(const Eigen::MatrixXd& V);
+
+void convertGridToPoints(Grid grid, Eigen::MatrixXd& points);
+
+int getBinIdx(std::vector<double> binBorders, double binSize, double currLocation);
+
+int getPointIdx(std::vector<double>& sortedPoints, double interval, double currPoint, double epsilon);

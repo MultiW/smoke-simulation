@@ -1,4 +1,5 @@
 #include "grid_util.h"
+#include "util.h"
 
 #include <igl/bounding_box.h>
 #include <igl/voxel_grid.h>
@@ -61,4 +62,54 @@ void alignToAxis(Eigen::MatrixXd& V) {
 	createAlignedBox(alignedGrid, alignedBox);
 
 	transformVertices(V, alignedBox, true);
+}
+
+void convertGridToPoints(Grid grid, Eigen::MatrixXd& points)
+{
+	points.resize(0, 3);
+	for (int x = 0; x < grid.size(0); x++)
+	{
+		for (int y = 0; y < grid.size(1); y++)
+		{
+			for (int z = 0; z < grid.size(2); z++)
+			{
+				addRows(points, grid(x, y, z).worldPoint.transpose());
+			}
+		}
+	}
+}
+
+// binBorders - sorted array of boundaries of all bins
+int getBinIdx(std::vector<double> binBorders, double binSize, double currLocation)
+{
+	int min = binBorders.front();
+	int max = binBorders.back();
+	assert(currLocation >= min && currLocation <= max);
+
+	for (int i = 1; i < binBorders.size(); i++)
+	{
+		if (currLocation < binBorders[i])
+		{
+			return i - 1;
+		}
+	}
+
+	printf("Error in getBinIdx(): could not find bin index.");
+	throw;
+}
+
+int getPointIdx(std::vector<double> &sortedPoints, double interval, double currPoint, double epsilon)
+{
+	double min = sortedPoints.front();
+	double max = sortedPoints.back();
+
+	// Check that point is in bounds
+	assert(currPoint >= min - epsilon && currPoint <= max + epsilon);
+
+	int borderIdx = std::round((currPoint - min) / interval);
+
+	// Check that point is within "epsilon" from nearest grid point
+	assert(std::abs(currPoint - sortedPoints[borderIdx]) < epsilon);
+
+	return borderIdx;
 }

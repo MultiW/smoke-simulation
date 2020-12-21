@@ -1,4 +1,5 @@
 #include "grid.h"
+#include "grid_util.h"
 #include "util.h"
 
 Grid::Grid() {}
@@ -6,22 +7,6 @@ Grid::Grid() {}
 Grid::Grid(size_t d1, size_t d2, size_t d3):
 	grid(d1, d2, d3)
 {
-}
-
-int getPointIdx(std::vector<double> &sortedPoints, double interval, double currPoint, double epsilon)
-{
-	double min = sortedPoints.front();
-	double max = sortedPoints.back();
-
-	// Check that point is in bounds
-	assert(currPoint >= min - epsilon && currPoint <= max + epsilon);
-
-	int borderIdx = std::round((currPoint - min) / interval);
-
-	// Check that point is within "epsilon" from nearest grid point
-	assert(std::abs(currPoint - sortedPoints[borderIdx]) < epsilon);
-
-	return borderIdx;
 }
 
 void Grid::setWorldPoints(const Eigen::MatrixXd& points, double cellSize)
@@ -58,25 +43,6 @@ void Grid::setWorldPoints(const Eigen::MatrixXd& points, double cellSize)
 
 	this->cellSize = cellSize;
 	this->points = points;
-}
-
-// binBorders - sorted array of boundaries of all bins
-int getBinIdx(std::vector<double> binBorders, double binSize, double currLocation)
-{
-	int min = binBorders.front();
-	int max = binBorders.back();
-	assert(currLocation >= min && currLocation <= max);
-
-	for (int i = 1; i < binBorders.size(); i++)
-	{
-		if (currLocation < binBorders[i])
-		{
-			return i - 1;
-		}
-	}
-
-	printf("Error in getBinIdx(): could not find bin index.");
-	throw;
 }
 
 void Grid::interpolateToPoints(const Eigen::MatrixXd& q, Eigen::Ref<Eigen::VectorXd> qdotCol)
