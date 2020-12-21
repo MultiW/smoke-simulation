@@ -210,13 +210,29 @@ void StaggeredGrid::getVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
 void StaggeredGrid::updateVelocityAndPressure() {
 	// Update the pressure
 	double gridGranularity = getCellSize();
-	
-	Eigen::Vector4d B, qj;
-	B << -1 / gridGranularity, 1 / gridGranularity, -1 / gridGranularity, 1 / gridGranularity;
-	for (int i = 0; i < dim(0); i++) {
-		for (int j = 0; j < dim(1); j++) {
-			for (int k = 0; k < dim(2); k++) {
+	Eigen::MatrixXd D;
+	Eigen::VectorXd pj, B, qj;
+	Eigen::VectorXd ;
+	double invx = 1 / gridGranularity;
+	double invy = 1 / gridGranularity;
+	double invz = 1 / gridGranularity;
+	B.resize(6);
+	B << -invx, invx, -invy, invy, -invz, invz;
+	pj.resize(7);
+	D.resize(6, 7);
+	D.setZero();
+	D << -invx, 0, invx, 0, 0, 0, 0,
+		0, invx, -invx, 0, 0, 0, 0,
+		0, 0, invy, -invy, 0, 0, 0,
+		0, 0, -invy, 0, invy, 0, 0,
+		0, 0, invz, 0, 0, -invz, 0,
+		0, 0, -invz, 0, 0, 0, invz;
 
+	for (int i = 0; i < dim(0) - 1; i++) {
+		for (int j = 0; j < dim(1) - 1; j++) {
+			for (int k = 0; k < dim(2) - 1; k++) {
+				qj << uGrid(i, j, k).value, uGrid(i + 1, j, k).value, vGrid(i, j, k).value, vGrid(i, j + 1, k).value, wGrid(i, j, k).value, wGrid(i, j, k + 1).value;
+				pj << pGrid(i - 1, j, k).value, pGrid(i + 1, j, k).value, pGrid(i, j, k).value, pGrid(i, j - 1, k).value, pGrid(i, j + 1, k).value, pGrid(i, j, k - 1).value, pGrid(i, j, k + 1).value;
 			}
 		}
 	}
