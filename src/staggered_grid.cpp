@@ -15,9 +15,9 @@ StaggeredGrid::StaggeredGrid() {}
 StaggeredGrid::StaggeredGrid(const Eigen::AlignedBox3d& box, const Eigen::Vector3i& dim) :
 	box(box),
 	dim(dim),
-	uGrid(Grid(dim(0) - 1.0, dim(1), dim(2))),
-	vGrid(Grid(dim(0), dim(1) - 1.0, dim(2))),
-	wGrid(Grid(dim(0), dim(1), dim(2) - 1.0)),
+	uGrid(Grid(dim(0), dim(1) - 1.0, dim(2) - 1.0)),
+	vGrid(Grid(dim(0)- 1.0, dim(1), dim(2) - 1.0)),
+	wGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2))),
 	pGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0))
 {
 	// World-space locations of grid-points
@@ -50,15 +50,18 @@ void StaggeredGrid::createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eig
 
 	u = model;
 	transformVertices(u, this->box);
-	addToCol(u, 0, cellHalfLen);
+	addToCol(u, 1, cellHalfLen);
+	addToCol(u, 2, cellHalfLen);
 
 	v = model;
 	transformVertices(v, this->box);
-	addToCol(v, 1, cellHalfLen);
+	addToCol(v, 0, cellHalfLen);
+	addToCol(v, 2, cellHalfLen);
 
 	w = model;
 	transformVertices(w, this->box);
-	addToCol(w, 2, cellHalfLen);
+	addToCol(w, 0, cellHalfLen);
+	addToCol(w, 1, cellHalfLen);
 
 	p = model;
 	transformVertices(p, this->box);
