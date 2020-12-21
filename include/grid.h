@@ -24,7 +24,16 @@ public:
 	*/
 	void Grid::setPointValues(const Eigen::VectorXd& newValues);
 
+	/*
+	* For each point q, interpolate its qdotCol values from enclosing cube's values
+	*/
 	void interpolateToPoints(const Eigen::MatrixXd& q, Eigen::Ref<Eigen::VectorXd> qdotCol);
+
+	/*
+	* Set the grid values based on the given points' values.
+	* Set to zero if no points are inside a cube
+	*/
+	void interpolateGridValues(const Eigen::MatrixXd& q, const Eigen::VectorXd qdotCol);
 
 	// sorted x, y, z values of the grid
 	std::vector<double> const& x();
@@ -44,6 +53,9 @@ private:
 	std::vector<double> _x;
 	std::vector<double> _y;
 	std::vector<double> _z;
+
+	/* Set values of all points to 0 */
+	void clearValues();
 };
 
 #endif

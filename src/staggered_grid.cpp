@@ -99,8 +99,11 @@ void StaggeredGrid::createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eig
 // === Computing pressure projections ===
 // ======================================
 
-void StaggeredGrid::setGridVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
-	//TODO interpolate qdot into grids
+void StaggeredGrid::setGridVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) 
+{
+	this->uGrid.interpolateGridValues(q, qdot.col(0));
+	this->vGrid.interpolateGridValues(q, qdot.col(1));
+	this->wGrid.interpolateGridValues(q, qdot.col(2));
 }
 
 void StaggeredGrid::getInterpolatedVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) 

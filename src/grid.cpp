@@ -64,7 +64,7 @@ void Grid::interpolateToPoints(const Eigen::MatrixXd& q, Eigen::Ref<Eigen::Vecto
 	{
 		point = q.row(i);
 
-		// get coordinates to cell in staggered grid
+		// get coordinates to cell surrounding current point
 		xi = getBinIdx(this->_x, this->cellSize, point(0));
 		yi = getBinIdx(this->_y, this->cellSize, point(1));
 		zi = getBinIdx(this->_z, this->cellSize, point(2));
@@ -83,6 +83,53 @@ void Grid::interpolateToPoints(const Eigen::MatrixXd& q, Eigen::Ref<Eigen::Vecto
 		qdotCol(i) += this->grid(xi, yi + 1, zi + 1).value * (this->cellSize - x) * y * z;
 		qdotCol(i) += this->grid(xi + 1, yi + 1, zi).value * x * y * (this->cellSize - z);
 		qdotCol(i) += this->grid(xi + 1, yi + 1, zi + 1).value * x * y * z;
+	}
+}
+
+
+void Grid::interpolateGridValues(const Eigen::MatrixXd& q, const Eigen::VectorXd qdotCol)
+{
+	this->clearValues();
+
+	Eigen::RowVector3d point;
+	int xi, yi, zi; // cell in which point is located
+	int x, y, z; // distance from corner of box to point
+	for (int i = 0; i < q.rows(); i++)
+	{
+		point = q.row(i);
+
+		// get coordinates to cell surrounding current point
+		xi = getBinIdx(this->_x, this->cellSize, point(0));
+		yi = getBinIdx(this->_y, this->cellSize, point(1));
+		zi = getBinIdx(this->_z, this->cellSize, point(2));
+
+		x = point(0) - this->grid(xi, yi, zi).worldPoint(0);
+		y = point(1) - this->grid(xi, yi, zi).worldPoint(1);
+		z = point(2) - this->grid(xi, yi, zi).worldPoint(2);
+
+		// update current cell's values with current point. Use weights from trilinear interpolation
+		this->grid(xi, yi, zi).value += qdotCol(i) * (this->cellSize - x) * (this->cellSize - y) * (this->cellSize - z);
+		this->grid(xi + 1, yi, zi).value += qdotCol(i) * x * (this->cellSize - y) * (this->cellSize - z);
+		this->grid(xi, yi + 1, zi).value += qdotCol(i) * (this->cellSize - x) * y * (this->cellSize - z);
+		this->grid(xi, yi, zi + 1).value += qdotCol(i) * (this->cellSize - x) * (this->cellSize - y) * z;
+		this->grid(xi + 1, yi, zi + 1).value += qdotCol(i) * x * (this->cellSize - y) * z;
+		this->grid(xi, yi + 1, zi + 1).value += qdotCol(i) * (this->cellSize - x) * y * z;
+		this->grid(xi + 1, yi + 1, zi).value += qdotCol(i) * x * y * (this->cellSize - z);
+		this->grid(xi + 1, yi + 1, zi + 1).value += qdotCol(i) * x * y * z;
+	}
+}
+
+void Grid::clearValues()
+{
+	for (int i = 0; i < this->size(0); i++)
+	{
+		for (int j = 0; j < this->size(1); j++)
+		{
+			for (int k = 0; k < this->size(2); k++)
+			{
+				this->grid(i, j, k).value = 0;
+			}
+		}
 	}
 }
 
