@@ -34,6 +34,7 @@ private:
 	void createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);
 
 	void setGridVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);
+	void interpolateGrid(Eigen::MatrixXd& q, Eigen::VectorXd& qdotCol, Grid& grid);
 	void getVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);
 	void updateVelocityAndPressure();
 };

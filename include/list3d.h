@@ -31,7 +31,7 @@ public:
         data.resize(d1 * d2 * d3);
     }
 
-    size_t getSize(int dimension)
+    size_t size(int dimension)
     {
         switch (dimension)
         {
