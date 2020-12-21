@@ -45,6 +45,16 @@ void Grid::setWorldPoints(const Eigen::MatrixXd& points, double cellSize)
 	this->points = points;
 }
 
+void Grid::setPointValues(const Eigen::VectorXd& newValues)
+{
+	Eigen::Vector3d gridIdx;
+	for (int i = 0; i < newValues.rows(); i++)
+	{
+		gridIdx = mapTo3d(i, this->size(0), this->size(1), this->size(2));
+		this->grid(gridIdx(0), gridIdx(1), gridIdx(2)).value = newValues(i);
+	}
+}
+
 void Grid::interpolateToPoints(const Eigen::MatrixXd& q, Eigen::Ref<Eigen::VectorXd> qdotCol)
 {
 	Eigen::RowVector3d point;

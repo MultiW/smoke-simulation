@@ -29,8 +29,11 @@ private:
 
 	void createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);
 
+	// Convert between particles velocities and grid velocities
 	void setGridVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);
-	void getVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);
+	void getInterpolatedVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);
+
 	void updateVelocityAndPressure(double dt, double density);
-	void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt, double density);
+	void updateGridVelocities();
+	void computePressure(Eigen::VectorXd p, double dt, double density);
 };

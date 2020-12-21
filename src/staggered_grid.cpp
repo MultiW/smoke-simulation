@@ -45,7 +45,7 @@ void StaggeredGrid::updateSimulation(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, 
 	// TODO: uncomment when all have been implemented
 	//this->setGridVelocities(q, qdot);
 	//this->updateVelocityAndPressure(dt, density);
-	//this->getVelocities(q, qdot);
+	//this->getInterpolatedVelocities(q, qdot);
 }
 
 double StaggeredGrid::getCellSize()
@@ -103,7 +103,7 @@ void StaggeredGrid::setGridVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
 	//TODO interpolate qdot into grids
 }
 
-void StaggeredGrid::getVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) 
+void StaggeredGrid::getInterpolatedVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) 
 {
 	this->uGrid.interpolateToPoints(q, qdot.col(0));
 	this->vGrid.interpolateToPoints(q, qdot.col(1));
@@ -115,9 +115,16 @@ void StaggeredGrid::updateVelocityAndPressure(double dt, double density)
 	Eigen::VectorXd p;
 	this->computePressure(p, dt, density);
 
-	// TODO: apply new pressures to pGrid
+	// apply new pressure values to pGrid
+	this->pGrid.setPointValues(p);
 
 	// TODO: update velocity based on pressure
+	this->updateGridVelocities();
+}
+
+void StaggeredGrid::updateGridVelocities()
+{
+
 }
 
 void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt, double density)

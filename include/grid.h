@@ -18,6 +18,12 @@ public:
 
 	void setWorldPoints(const Eigen::MatrixXd& points, double cellSize);
 
+	/*
+	* 3D grid of values flattened to a 1D array
+	* Assumption: dimensions of given vector matches this grid's dimensions
+	*/
+	void Grid::setPointValues(const Eigen::VectorXd& newValues);
+
 	void interpolateToPoints(const Eigen::MatrixXd& q, Eigen::Ref<Eigen::VectorXd> qdotCol);
 
 	// sorted x, y, z values of the grid
