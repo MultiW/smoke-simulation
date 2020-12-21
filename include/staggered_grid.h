@@ -27,7 +27,6 @@ public:
 private:
 	double getCellSize();
 
-	void updateWorldPoints(const Eigen::MatrixXd& points, Grid& grid);
 	void createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);
 
 	void setGridVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);

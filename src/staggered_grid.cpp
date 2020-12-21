@@ -107,28 +107,13 @@ void StaggeredGrid::setGridVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
 	//TODO interpolate qdot into grids
 }
 
-// binBorders - sorted array of boundaries of all bins
-int getBinIdx(std::vector<double> binBorders, double binSize, double currLocation)
+void StaggeredGrid::getVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) 
 {
-	int min = binBorders.front();
-	int max = binBorders.back();
-	assert(currLocation >= min && currLocation <= max);
-
-	for (int i = 1; i < binBorders.size(); i++)
-	{
-		if (currLocation < binBorders[i])
-		{
-			return i - 1;
-		}
-	}
-
-	printf("Error in getBinIdx(): could not find bin index.");
-	throw;
+	this->uGrid.interpolateToPoints(q, qdot.col(0));
+	this->vGrid.interpolateToPoints(q, qdot.col(1));
+	this->wGrid.interpolateToPoints(q, qdot.col(2));
 }
 
-void StaggeredGrid::interpolateGrid(Eigen::MatrixXd& q, Eigen::VectorXd& qdotCol, Grid& grid)
-{
-	double cellLen = this->getCellSize();
 
 	// TODO: fix this. vector is wrong
 	std::vector<double> xPoints;
@@ -229,9 +214,10 @@ void StaggeredGrid::updateVelocityAndPressure(double dt, double density) {
 	p = cg.solve(q);	
 }
 
-void StaggeredGrid::computeVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double density) {
-	this->setGridVelocities(q, qdot);
-	this->updateVelocityAndPressure(dt, density);
-	this->getVelocities(q, qdot);
+void StaggeredGrid::computeVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
+	// TODO: uncomment when all have been implemented
+	//this->setGridVelocities(q, qdot);
+	//this->updateVelocityAndPressure();
+	//this->getVelocities(q, qdot);
 }
 
