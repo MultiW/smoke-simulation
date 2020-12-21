@@ -90,15 +90,12 @@ void StaggeredGrid::updateWorldPoints(const Eigen::MatrixXd& points, Grid& grid)
 {
 	// Grid's sorted x, y, z values
 	// Note: Eigen Matrix is stored in column-major order
-	std::set<double> xSet(points.col(0).data(),	points.col(0).data() + points.rows());
-	std::set<double> ySet(points.col(1).data(),	points.col(1).data() + points.rows());
-	std::set<double> zSet(points.col(2).data(),	points.col(2).data() + points.rows());
-	std::vector<double> xPoints(xSet.begin(), xSet.end());
-	std::vector<double> yPoints(ySet.begin(), ySet.end());
-	std::vector<double> zPoints(zSet.begin(), zSet.end());
-	std::sort(xPoints.begin(), xPoints.end());
-	std::sort(yPoints.begin(), yPoints.end());
-	std::sort(zPoints.begin(), zPoints.end());
+	std::vector<double> xPoints;
+	std::vector<double> yPoints;
+	std::vector<double> zPoints;
+	colToSortedVector(points.col(0), xPoints);
+	colToSortedVector(points.col(1), yPoints);
+	colToSortedVector(points.col(2), zPoints);
 
 	double cellSize = this->getCellSize();
 	double epsilon = cellSize / 10.0;
@@ -113,7 +110,7 @@ void StaggeredGrid::updateWorldPoints(const Eigen::MatrixXd& points, Grid& grid)
 		yIdx = getPointIdx(yPoints, cellSize, currPoint(1), epsilon);
 		zIdx = getPointIdx(zPoints, cellSize, currPoint(2), epsilon);
 
-		if (xIdx < grid.getSize(0) && yIdx < grid.getSize(1) && zIdx < grid.getSize(2))
+		if (xIdx < grid.size(0) && yIdx < grid.size(1) && zIdx < grid.size(2))
 		{
 			grid(xIdx, yIdx, zIdx).gridPoint = Eigen::Vector3i(xIdx, yIdx, zIdx);
 			grid(xIdx, yIdx, zIdx).worldPoint = Eigen::Vector3d(currPoint(0), currPoint(1), currPoint(2));
@@ -129,11 +126,11 @@ void StaggeredGrid::updateWorldPoints(const Eigen::MatrixXd& points, Grid& grid)
 void convertGridToPoints(Grid grid, Eigen::MatrixXd& points)
 {
 	points.resize(0, 3);
-	for (int x = 0; x < grid.getSize(0); x++)
+	for (int x = 0; x < grid.size(0); x++)
 	{
-		for (int y = 0; y < grid.getSize(1); y++)
+		for (int y = 0; y < grid.size(1); y++)
 		{
-			for (int z = 0; z < grid.getSize(2); z++)
+			for (int z = 0; z < grid.size(2); z++)
 			{
 				addRows(points, grid(x, y, z).worldPoint.transpose());
 			}
@@ -156,6 +153,53 @@ void StaggeredGrid::getGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen:
 
 void StaggeredGrid::setGridVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
 	//TODO interpolate qdot into grids
+}
+
+// binBorders - sorted array of boundaries of all bins
+int getBinIdx(std::vector<double> binBorders, double binSize, double currLocation)
+{
+	int min = binBorders.front();
+	int max = binBorders.back();
+	assert(currLocation >= min && currLocation <= max);
+
+	for (int i = 1; i < binBorders.size(); i++)
+	{
+		if (currLocation < binBorders[i])
+		{
+			return i - 1;
+		}
+	}
+
+	printf("Error in getBinIdx(): could not find bin index.");
+	throw;
+}
+
+void StaggeredGrid::interpolateGrid(Eigen::MatrixXd& q, Eigen::VectorXd& qdotCol, Grid& grid)
+{
+	double cellLen = this->getCellSize();
+
+	// TODO: fix this. vector is wrong
+	std::vector<double> xPoints;
+	std::vector<double> yPoints;
+	std::vector<double> zPoints;
+	colToSortedVector(q.col(0), xPoints);
+	colToSortedVector(q.col(1), yPoints);
+	colToSortedVector(q.col(2), zPoints);
+
+	Eigen::RowVector3d point;
+	int xIdx, yIdx, zIdx; // cell in which point is located
+	for (int i = 0; i < q.rows(); i++)
+	{
+		point = q.row(i);
+
+		// get coordinates to cell in staggered grid
+		xIdx = getBinIdx(xPoints, cellLen, point(0));
+		yIdx = getBinIdx(yPoints, cellLen, point(1));
+		zIdx = getBinIdx(zPoints, cellLen, point(2));
+
+		// TODO: interpolate
+		qdotCol(i) = 0;
+	}
 }
 
 void StaggeredGrid::getVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {

@@ -49,6 +49,8 @@ int boxId;
 // Update location and velocity of smoke particles
 inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double t)
 {
+	// TODO: add boundary checks on points
+
 	// Update position q
 	advection(q, qdot, dt);
 
