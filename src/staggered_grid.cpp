@@ -114,36 +114,6 @@ void StaggeredGrid::getVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
 	this->wGrid.interpolateToPoints(q, qdot.col(2));
 }
 
-
-	// TODO: fix this. vector is wrong
-	std::vector<double> xPoints;
-	std::vector<double> yPoints;
-	std::vector<double> zPoints;
-	colToSortedVector(q.col(0), xPoints);
-	colToSortedVector(q.col(1), yPoints);
-	colToSortedVector(q.col(2), zPoints);
-
-	Eigen::RowVector3d point;
-	int xIdx, yIdx, zIdx; // cell in which point is located
-	for (int i = 0; i < q.rows(); i++)
-	{
-		point = q.row(i);
-
-		// get coordinates to cell in staggered grid
-		xIdx = getBinIdx(xPoints, cellLen, point(0));
-		yIdx = getBinIdx(yPoints, cellLen, point(1));
-		zIdx = getBinIdx(zPoints, cellLen, point(2));
-
-		// TODO: interpolate
-		qdotCol(i) = 0;
-	}
-}
-
-void StaggeredGrid::getVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
-	// TODO: trillinear interpolation
-}
-
-
 void StaggeredGrid::updateVelocityAndPressure(double dt, double density) {
 	// Update the pressure
 	
@@ -214,7 +184,7 @@ void StaggeredGrid::updateVelocityAndPressure(double dt, double density) {
 	p = cg.solve(q);	
 }
 
-void StaggeredGrid::computeVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
+void StaggeredGrid::computeVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double density) {
 	// TODO: uncomment when all have been implemented
 	//this->setGridVelocities(q, qdot);
 	//this->updateVelocityAndPressure();
