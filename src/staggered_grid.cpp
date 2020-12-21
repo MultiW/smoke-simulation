@@ -102,55 +102,11 @@ void StaggeredGrid::setGridVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
 	//TODO interpolate qdot into grids
 }
 
-// binBorders - sorted array of boundaries of all bins
-int getBinIdx(std::vector<double> binBorders, double binSize, double currLocation)
+void StaggeredGrid::getVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) 
 {
-	int min = binBorders.front();
-	int max = binBorders.back();
-	assert(currLocation >= min && currLocation <= max);
-
-	for (int i = 1; i < binBorders.size(); i++)
-	{
-		if (currLocation < binBorders[i])
-		{
-			return i - 1;
-		}
-	}
-
-	printf("Error in getBinIdx(): could not find bin index.");
-	throw;
-}
-
-void StaggeredGrid::interpolateGrid(Eigen::MatrixXd& q, Eigen::VectorXd& qdotCol, Grid& grid)
-{
-	double cellLen = this->getCellSize();
-
-	// TODO: fix this. vector is wrong
-	std::vector<double> xPoints;
-	std::vector<double> yPoints;
-	std::vector<double> zPoints;
-	colToSortedVector(q.col(0), xPoints);
-	colToSortedVector(q.col(1), yPoints);
-	colToSortedVector(q.col(2), zPoints);
-
-	Eigen::RowVector3d point;
-	int xIdx, yIdx, zIdx; // cell in which point is located
-	for (int i = 0; i < q.rows(); i++)
-	{
-		point = q.row(i);
-
-		// get coordinates to cell in staggered grid
-		xIdx = getBinIdx(xPoints, cellLen, point(0));
-		yIdx = getBinIdx(yPoints, cellLen, point(1));
-		zIdx = getBinIdx(zPoints, cellLen, point(2));
-
-		// TODO: interpolate
-		qdotCol(i) = 0;
-	}
-}
-
-void StaggeredGrid::getVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
-	// TODO: trillinear interpolation
+	this->uGrid.interpolateToPoints(q, qdot.col(0));
+	this->vGrid.interpolateToPoints(q, qdot.col(1));
+	this->wGrid.interpolateToPoints(q, qdot.col(2));
 }
 
 
