@@ -164,7 +164,20 @@ void StaggeredGrid::getVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
 
 
 void StaggeredGrid::updateVelocityAndPressure() {
+	// Update the pressure
+	double gridGranularity = getCellSize();
+	
+	Eigen::Vector4d B, qj;
+	B << -1 / gridGranularity, 1 / gridGranularity, -1 / gridGranularity, 1 / gridGranularity;
+	for (int i = 0; i < dim(0); i++) {
+		for (int j = 0; j < dim(1); j++) {
+			for (int k = 0; k < dim(2); k++) {
 
+			}
+		}
+	}
+	
+	
 }
 
 void StaggeredGrid::computeVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
