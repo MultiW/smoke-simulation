@@ -115,8 +115,9 @@ void StaggeredGrid::updateVelocityAndPressure() {
 }
 
 void StaggeredGrid::computeVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
-	this->setGridVelocities(q, qdot);
-	this->updateVelocityAndPressure();
-	this->getVelocities(q, qdot);
+	// TODO: uncomment when all have been implemented
+	//this->setGridVelocities(q, qdot);
+	//this->updateVelocityAndPressure();
+	//this->getVelocities(q, qdot);
 }
 
