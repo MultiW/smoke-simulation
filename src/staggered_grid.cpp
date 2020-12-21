@@ -25,10 +25,10 @@ StaggeredGrid::StaggeredGrid(const Eigen::AlignedBox3d& box, const Eigen::Vector
 	this->createGridPoints(u, v, w, p);
 
 	// Update world points of grids
-	this->updateWorldPoints(u, this->uGrid);
-	this->updateWorldPoints(v, this->vGrid);
-	this->updateWorldPoints(w, this->wGrid);
-	this->updateWorldPoints(p, this->pGrid);
+	this->uGrid.setWorldPoints(u, this->getCellSize());
+	this->vGrid.setWorldPoints(v, this->getCellSize());
+	this->wGrid.setWorldPoints(w, this->getCellSize());
+	this->pGrid.setWorldPoints(p, this->getCellSize());
 }
 
 double StaggeredGrid::getCellSize()
@@ -68,59 +68,6 @@ void StaggeredGrid::createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eig
 	addToCol(p, 0, cellHalfLen);
 	addToCol(p, 1, cellHalfLen);
 	addToCol(p, 2, cellHalfLen);
-}
-
-int getPointIdx(std::vector<double> &sortedPoints, double interval, double currPoint, double epsilon)
-{
-	double min = sortedPoints.front();
-	double max = sortedPoints.back();
-
-	// Check that point is in bounds
-	assert(currPoint >= min - epsilon && currPoint <= max + epsilon);
-
-	int borderIdx = std::round((currPoint - min) / interval);
-
-	// Check that point is within "epsilon" from nearest grid point
-	assert(std::abs(currPoint - sortedPoints[borderIdx]) < epsilon);
-
-	return borderIdx;
-}
-
-void StaggeredGrid::updateWorldPoints(const Eigen::MatrixXd& points, Grid& grid)
-{
-	// Grid's sorted x, y, z values
-	// Note: Eigen Matrix is stored in column-major order
-	std::vector<double> xPoints;
-	std::vector<double> yPoints;
-	std::vector<double> zPoints;
-	colToSortedVector(points.col(0), xPoints);
-	colToSortedVector(points.col(1), yPoints);
-	colToSortedVector(points.col(2), zPoints);
-
-	double cellSize = this->getCellSize();
-	double epsilon = cellSize / 10.0;
-
-	int xIdx, yIdx, zIdx;
-	Eigen::RowVector3d currPoint;
-	for (int i = 0; i < points.rows(); i++)
-	{
-		currPoint = points.row(i);
-
-		xIdx = getPointIdx(xPoints, cellSize, currPoint(0), epsilon);
-		yIdx = getPointIdx(yPoints, cellSize, currPoint(1), epsilon);
-		zIdx = getPointIdx(zPoints, cellSize, currPoint(2), epsilon);
-
-		if (xIdx < grid.size(0) && yIdx < grid.size(1) && zIdx < grid.size(2))
-		{
-			grid(xIdx, yIdx, zIdx).gridPoint = Eigen::Vector3i(xIdx, yIdx, zIdx);
-			grid(xIdx, yIdx, zIdx).worldPoint = Eigen::Vector3d(currPoint(0), currPoint(1), currPoint(2));
-		}
-		else
-		{
-			// TODO: REMOVE. For debugging
-			printf("Not adding point: %d %d %d\n", xIdx, yIdx, zIdx);
-		}
-	}
 }
 
 void convertGridToPoints(Grid grid, Eigen::MatrixXd& points)
