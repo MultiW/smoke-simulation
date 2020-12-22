@@ -130,6 +130,12 @@ void StaggeredGrid::updateGridVelocities()
 
 }
 
+void safe_push_back(std::vector<T>& vector, int row, int i, int j, int k, int d1, int d2, int d3, double val) {
+	if (val != 0) {
+		vector.push_back(T(row, mapTo1d(i - 1, j, k, d1, d2, d3), val));
+	}
+}
+
 void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt, double density)
 {
 	// Number of cells in staggered grid (aka number of pressure points)
@@ -151,7 +157,7 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt, double density
 	B.resize(6);
 	B << -invx, invx, -invy, invy, -invz, invz;
 
-	Eigen::MatrixXd D;
+	Eigen::MatrixXd D, selection;
 	D.resize(6, 7);
 	D.setZero();
 	D << -invx, 0, invx, 0, 0, 0, 0,
@@ -164,7 +170,6 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt, double density
 	Eigen::VectorXd Aj;
 	Aj.resize(7);
 	Aj.setZero();
-	Aj = B * D;
 
 	// global equation variable: p, f
 	Eigen::VectorXd f;
@@ -185,6 +190,10 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt, double density
 	fj.setZero();
 	pj.resize(7);
 
+	selection.resize(6, 6);
+	selection.setZero();
+	selection.setIdentity();
+
 	for (int i = 0; i < d1; i++) {
 		for (int j = 0; j < d2; j++) {
 			for (int k = 0; k < d3; k++) {
@@ -197,27 +206,60 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt, double density
 					wGrid(i, j, k + 1).value;
 
 				//pj << pGrid(i - 1, j, k).value, pGrid(i + 1, j, k).value, pGrid(i, j, k).value, pGrid(i, j - 1, k).value, pGrid(i, j + 1, k).value, pGrid(i, j, k - 1).value, pGrid(i, j, k + 1).value;
+				selection.setIdentity();
+
+				if (i == 0) {
+					selection(0, 0) = 0;
+				} else if(i == d1 - 1) {
+					selection(1, 1) = 0;
+				}
+
+				if (j == 0) {
+					selection(2, 2) = 0;
+				}
+				else if (j == d2 - 1) {
+					selection(3, 3) = 0;
+				}
+
+				if (k == 0) {
+					selection(4, 4) = 0;
+				}
+				else if (k == d3 - 1) {
+					selection(5, 5) = 0;
+				}
+
+				Aj = B * selection * D;
+
+
 
 				// Assemble to global A, f 
 				int row = mapTo1d(i, j, k, d1, d2, d3);
-				f(row) = (B * fj)(0) * density / dt;
+				f(row) = (B * selection *fj)(0) * density / dt;
+
+
 
 				//TODO: Figure out borders
-				coefficients.push_back(T(row, mapTo1d(i - 1, j, k, d1, d2, d3), Aj(0)));
-				coefficients.push_back(T(row, mapTo1d(i + 1, j, k, d1, d2, d3), Aj(1)));
-				coefficients.push_back(T(row, mapTo1d(i, j, k, d1, d2, d3), Aj(2)));
-				coefficients.push_back(T(row, mapTo1d(i, j - 1, k, d1, d2, d3), Aj(3)));
-				coefficients.push_back(T(row, mapTo1d(i, j + 1, k, d1, d2, d3), Aj(4)));
-				coefficients.push_back(T(row, mapTo1d(i, j, k - 1, d1, d2, d3), Aj(5)));
-				coefficients.push_back(T(row, mapTo1d(i, j, k + 1, d1, d2, d3), Aj(6)));
+				safe_push_back(coefficients, row, i - 1, j, k, d1, d2, d3, Aj(0));
+				safe_push_back(coefficients, row, i + 1, j, k, d1, d2, d3, Aj(1));
+				safe_push_back(coefficients, row, i, j, k, d1, d2, d3, Aj(2));
+				safe_push_back(coefficients, row, i, j - 1, k, d1, d2, d3, Aj(3));
+				safe_push_back(coefficients, row, i, j + 1, k, d1, d2, d3, Aj(4));
+				safe_push_back(coefficients, row, i, j, k - 1, d1, d2, d3, Aj(5));
+				safe_push_back(coefficients, row, i, j, k + 1, d1, d2, d3, Aj(6));
 			}
 		}
 	}
+
+
+
 	A.setFromTriplets(coefficients.begin(), coefficients.end());
 
 	// Solve for pressure
 	Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower | Eigen::Upper> cg;
 	cg.compute(A);
 	p = cg.solve(f);
+
+
 }
+
 
