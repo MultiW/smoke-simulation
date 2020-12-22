@@ -180,15 +180,15 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt, double density
 
 	// TODO: remove pj
 	// per-cell variables: pj, fj
-	Eigen::VectorXd pj, fj;
-	fj.resize(6);
-	fj.setZero();
+	Eigen::VectorXd pj, qj;
+	qj.resize(6);
+	qj.setZero();
 	pj.resize(7);
 
 	for (int i = 0; i < d1; i++) {
 		for (int j = 0; j < d2; j++) {
 			for (int k = 0; k < d3; k++) {
-				fj << 
+				qj << 
 					uGrid(i, j, k).value, 
 					uGrid(i + 1, j, k).value, 
 					vGrid(i, j, k).value, 
@@ -200,7 +200,7 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt, double density
 
 				// Assemble to global A, f 
 				int row = mapTo1d(i, j, k, d1, d2, d3);
-				f(row) = (B * fj)(0) * density / dt;
+				f(row) = (B * qj)(0) * density / dt;
 
 				//TODO: Figure out borders
 				coefficients.push_back(T(row, mapTo1d(i - 1, j, k, d1, d2, d3), Aj(0)));
