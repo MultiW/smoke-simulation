@@ -57,34 +57,36 @@ void Grid::setPointValues(const Eigen::VectorXd& newValues)
 	}
 }
 
-void Grid::interpolatePoints(const Eigen::MatrixXd& q, Eigen::Ref<Eigen::VectorXd> qdotCol)
+double Grid::interpolatePoint(const Eigen::RowVector3d point)
 {
-	Eigen::RowVector3d point;
 	int xi, yi, zi; // cell in which point is located
 	int x, y, z; // distance from corner of box to point
+
+	// get coordinates to cell surrounding current point
+	xi = getBinIdx(this->_x, this->cellSize, point(0));
+	yi = getBinIdx(this->_y, this->cellSize, point(1));
+	zi = getBinIdx(this->_z, this->cellSize, point(2));
+
+	x = point(0) - this->grid(xi, yi, zi).worldPoint(0);
+	y = point(1) - this->grid(xi, yi, zi).worldPoint(1);
+	z = point(2) - this->grid(xi, yi, zi).worldPoint(2);
+
+	// trilinear interpolation from all corners of current cell
+	return this->safeGet(xi, yi, zi) * (this->cellSize - x) * (this->cellSize - y) * (this->cellSize - z)
+		+ this->safeGet(xi + 1, yi, zi) * x * (this->cellSize - y) * (this->cellSize - z)
+		+ this->safeGet(xi, yi + 1, zi) * (this->cellSize - x) * y * (this->cellSize - z)
+		+ this->safeGet(xi, yi, zi + 1) * (this->cellSize - x) * (this->cellSize - y) * z
+		+ this->safeGet(xi + 1, yi, zi + 1) * x * (this->cellSize - y) * z
+		+ this->safeGet(xi, yi + 1, zi + 1) * (this->cellSize - x) * y * z
+		+ this->safeGet(xi + 1, yi + 1, zi) * x * y * (this->cellSize - z)
+		+ this->safeGet(xi + 1, yi + 1, zi + 1) * x * y * z;
+}
+
+void Grid::interpolatePoints(const Eigen::MatrixXd& q, Eigen::Ref<Eigen::VectorXd> qdotCol)
+{
 	for (int i = 0; i < q.rows(); i++)
 	{
-		point = q.row(i);
-
-		// get coordinates to cell surrounding current point
-		xi = getBinIdx(this->_x, this->cellSize, point(0));
-		yi = getBinIdx(this->_y, this->cellSize, point(1));
-		zi = getBinIdx(this->_z, this->cellSize, point(2));
-
-		x = point(0) - this->grid(xi, yi, zi).worldPoint(0);
-		y = point(1) - this->grid(xi, yi, zi).worldPoint(1);
-		z = point(2) - this->grid(xi, yi, zi).worldPoint(2);
-
-		// trilinear interpolation from all corners of current cell
-		qdotCol(i) = 0; // clear velocity value
-		qdotCol(i) += this->safeGet(xi, yi, zi) * (this->cellSize - x) * (this->cellSize - y) * (this->cellSize - z);
-		qdotCol(i) += this->safeGet(xi + 1, yi, zi) * x * (this->cellSize - y) * (this->cellSize - z);
-		qdotCol(i) += this->safeGet(xi, yi + 1, zi) * (this->cellSize - x) * y * (this->cellSize - z);
-		qdotCol(i) += this->safeGet(xi, yi, zi + 1) * (this->cellSize - x) * (this->cellSize - y) * z;
-		qdotCol(i) += this->safeGet(xi + 1, yi, zi + 1) * x * (this->cellSize - y) * z;
-		qdotCol(i) += this->safeGet(xi, yi + 1, zi + 1) * (this->cellSize - x) * y * z;
-		qdotCol(i) += this->safeGet(xi + 1, yi + 1, zi) * x * y * (this->cellSize - z);
-		qdotCol(i) += this->safeGet(xi + 1, yi + 1, zi + 1) * x * y * z;
+		qdotCol(i) = this->interpolatePoint(q.row(i));
 	}
 }
 
@@ -109,7 +111,6 @@ void Grid::setGridValues(const Eigen::MatrixXd& q, const Eigen::VectorXd qdotCol
 		z = point(2) - this->grid(xi, yi, zi).worldPoint(2);
 
 		// update current cell's values with current point. Use weights from trilinear interpolation
-		//printf("works? %d %d %d\n", xi, yi, zi);
 		this->safeAdd(xi, yi, zi, qdotCol(i) * (this->cellSize - x) * (this->cellSize - y) * (this->cellSize - z));
 		this->safeAdd(xi + 1, yi, zi, qdotCol(i) * x * (this->cellSize - y) * (this->cellSize - z));
 		this->safeAdd(xi, yi + 1, zi, qdotCol(i) * (this->cellSize - x) * y * (this->cellSize - z));
@@ -118,7 +119,6 @@ void Grid::setGridValues(const Eigen::MatrixXd& q, const Eigen::VectorXd qdotCol
 		this->safeAdd(xi, yi + 1, zi + 1, qdotCol(i) * (this->cellSize - x) * y * z);
 		this->safeAdd(xi + 1, yi + 1, zi, qdotCol(i) * x * y * (this->cellSize - z));
 		this->safeAdd(xi + 1, yi + 1, zi + 1, qdotCol(i) * x * y * z);
-		//printf("works\n");
 	}
 }
 

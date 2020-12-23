@@ -18,17 +18,18 @@ public:
 
 	void setWorldPoints(const Eigen::MatrixXd& points, double cellSize);
 
-	void Grid::setConstantValue(double value);
+	void setConstantValue(double value);
 
 	/*
 	* 3D grid of values flattened to a 1D array
 	* Assumption: dimensions of given vector matches this grid's dimensions
 	*/
-	void Grid::setPointValues(const Eigen::VectorXd& newValues);
+	void setPointValues(const Eigen::VectorXd& newValues);
 
 	/*
-	* For each point q, interpolate its qdotCol values from enclosing cube's values
+	* Get the trilinear interpolation value of the point from the enclosing cube's values.
 	*/
+	double interpolatePoint(const Eigen::RowVector3d point);
 	void interpolatePoints(const Eigen::MatrixXd& q, Eigen::Ref<Eigen::VectorXd> qdotCol);
 
 	/*
@@ -42,6 +43,13 @@ public:
 	std::vector<double> const& x();
 	std::vector<double> const& y();
 	std::vector<double> const& z();
+
+	/* Returns the value of the identified point. Return 0 if out of bounds */
+	double safeGet(int i, int j, int k);
+
+	/* Add to the value of the given point. Do nothing if given indices are out of bounds */
+	void safeAdd(int i, int j, int k, double value);
+
 
 	// Wrapper functions for List3d class
     Point& operator()(size_t i, size_t j, size_t k);
@@ -59,12 +67,6 @@ private:
 
 	/* Set values of all points to 0 */
 	void clearValues();
-
-	/* Returns the value of the identified point. Return 0 if out of bounds */
-	double safeGet(int i, int j, int k);
-
-	/* Add to the value of the given point. Do nothing if given indices are out of bounds */
-	void safeAdd(int i, int j, int k, double value);
 };
 
 #endif

@@ -36,14 +36,14 @@ int smokeId;
 int boxId;
 
 // Update location and velocity of smoke particles
-inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double t)
+inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double t)
 {
-	// TODO: compute external forces for smoke
-	external_forces(q, qdot, dt);
-
+	// Order matters
 	staggeredGrid.setGridVelocities(q, qdot);
+	staggeredGrid.updateTemperatureAndDensity();
+	staggeredGrid.applyBuoyancyForce();
 	staggeredGrid.applyVorticityConfinement(q, qdot);
-	staggeredGrid.computePressureProjections(q, qdot, dt);
+	staggeredGrid.computePressureProjections(q, qdot);
 
 	// TODO: consider boundary checks as a last resort
 	advection(q, qdot, dt);

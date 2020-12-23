@@ -59,7 +59,36 @@ void StaggeredGrid::setGridVelocities(const Eigen::MatrixXd& q, const Eigen::Mat
 
 void StaggeredGrid::updateTemperatureAndDensity()
 {
-	// TODO: Xin
+	this->advectCenterValues(this->tempGrid);
+	this->advectCenterValues(this->densityGrid);
+}
+
+void StaggeredGrid::applyBuoyancyForce()
+{
+	int d1 = this->vGrid.size(0);
+	int d2 = this->vGrid.size(1);
+	int d3 = this->vGrid.size(2);
+
+	// Buoyancy force = (0, -alpha * s + beta(T - Tamb), 0)
+	// - where alpha, beta are tuning constants
+	// - s is the density and T is the temperature
+	double fBuoy, s, T;	
+	for (int i = 0; i < d1; i++)
+	{
+		for (int j = 0; j < d2; j++)
+		{
+			for (int k = 0; k < d3; k++)
+			{
+				// TODO: how to handle boundary cases? Only use one neighbor in those cases?
+				//    - currently, the "out of bounds" neighbor is converted to a 0, 
+				//      so the s and T values are small because we still divide by 2
+				s = (this->densityGrid.safeGet(i, j, k) + this->densityGrid.safeGet(i, j + 1, k)) / 2;
+				T = (this->tempGrid.safeGet(i, j, k) + this->tempGrid.safeGet(i, j + 1, k)) / 2;
+				fBuoy = -ALPHA * s + BETA * (T - AMBIENT_TEMP);
+				this->vGrid(i, j, k).value += dt * fBuoy;
+			}
+		}
+	}
 }
 
 void StaggeredGrid::applyVorticityConfinement(const Eigen::MatrixXd& q, const Eigen::MatrixXd& qdot)
@@ -67,9 +96,9 @@ void StaggeredGrid::applyVorticityConfinement(const Eigen::MatrixXd& q, const Ei
 	// TODO: Xin
 }
 
-void StaggeredGrid::computePressureProjections(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt) {
+void StaggeredGrid::computePressureProjections(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
 	Eigen::VectorXd p;
-	this->computePressure(p, dt);
+	this->computePressure(p);
 	this->pGrid.setPointValues(p);
 
 	// Update grid velocities using pressure
@@ -125,15 +154,43 @@ void StaggeredGrid::createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eig
 	addToCol(p, 2, cellHalfLen);
 }
 
-// ========================================
-// === Set grid and particle velocities ===
-// ========================================
+// ====================================
+// === Set grid and particle values ===
+// ====================================
 
 void StaggeredGrid::getInterpolatedVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) 
 {
 	this->uGrid.interpolatePoints(q, qdot.col(0));
 	this->vGrid.interpolatePoints(q, qdot.col(1));
 	this->wGrid.interpolatePoints(q, qdot.col(2));
+}
+
+
+void StaggeredGrid::advectCenterValues(Grid& grid)
+{
+	int d1 = grid.size(0);
+	int d2 = grid.size(1);
+	int d3 = grid.size(2);
+
+	Eigen::Vector3d prevPosition;
+	Eigen::Vector3d velocityAtCenter;
+	for (int i = 0; i < d1; i++) 
+	{
+		for (int j = 0; j < d2; j++) 
+		{
+			for (int k = 0; k < d3; k++) 
+			{
+				// Get location of the (imaginary) particle that will reach this center position after timestep dt
+				velocityAtCenter(0) = (this->uGrid(i, j, k).value + this->uGrid(i + 1, j, k).value) / 2;
+				velocityAtCenter(1) = (this->uGrid(i, j, k).value + this->uGrid(i, j + 1, k).value) / 2;
+				velocityAtCenter(2) = (this->uGrid(i, j, k).value + this->uGrid(i, j, k + 1).value) / 2;
+				prevPosition = grid(i, j, k).worldPoint - dt * velocityAtCenter;
+
+				// This center position's temperature at the next timestep will be that imaginary particle's temperature
+				grid(i, j, k).value = grid.interpolatePoint(prevPosition);
+			}
+		}
+	}
 }
 
 // ======================================
@@ -196,7 +253,7 @@ void safe_push_back(std::vector<T>& vector, int row, int i, int j, int k, int d1
 	}
 }
 
-void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt)
+void StaggeredGrid::computePressure(Eigen::VectorXd p)
 {
 	// Number of cells in staggered grid (aka number of pressure points)
 	int d1 = this->pGrid.size(0);

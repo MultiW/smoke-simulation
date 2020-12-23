@@ -3,6 +3,7 @@
 
 #include "visualization.h"
 #include "simulation.h"
+#include "constants.h"
 
 // Simulation state
 // TODO: what format is required of q?
@@ -11,13 +12,12 @@ Eigen::MatrixXd qdot;
 
 //simulation time and time step
 double t = 0; //simulation time 
-double dt = 0.001; //time step
 
 bool simulation_callback()
 {
 	while (true)
 	{
-		simulate(q, qdot, dt, t);
+		simulate(q, qdot, t);
 		t += dt;
 	}
 	return false;
