@@ -45,7 +45,6 @@ inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double t)
 	staggeredGrid.applyVorticityConfinement(q, qdot);
 	staggeredGrid.computePressureProjections(q, qdot);
 
-	// TODO: consider boundary checks as a last resort
 	advection(q, qdot, dt);
 }
 

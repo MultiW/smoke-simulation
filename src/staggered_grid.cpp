@@ -82,8 +82,8 @@ void StaggeredGrid::applyBuoyancyForce()
 				// TODO: how to handle boundary cases? Only use one neighbor in those cases?
 				//    - currently, the "out of bounds" neighbor is converted to a 0, 
 				//      so the s and T values are small because we still divide by 2
-				s = (this->densityGrid.safeGet(i, j, k) + this->densityGrid.safeGet(i, j + 1, k)) / 2;
-				T = (this->tempGrid.safeGet(i, j, k) + this->tempGrid.safeGet(i, j + 1, k)) / 2;
+				s = (this->densityGrid.safeGet(i, j, k) + this->densityGrid.safeGet(i, j - 1, k)) / 2;
+				T = (this->tempGrid.safeGet(i, j, k) + this->tempGrid.safeGet(i, j - 1, k)) / 2;
 				fBuoy = -ALPHA * s + BETA * (T - AMBIENT_TEMP);
 				this->vGrid(i, j, k).value += dt * fBuoy;
 			}
@@ -93,7 +93,9 @@ void StaggeredGrid::applyBuoyancyForce()
 
 void StaggeredGrid::applyVorticityConfinement(const Eigen::MatrixXd& q, const Eigen::MatrixXd& qdot)
 {
-	// TODO: Xin
+	// TODO: need more grids for vorticity, center velocity, etc.
+	// Compute omega = curl of velocity
+	Eigen::Vector3d omega;
 }
 
 void StaggeredGrid::computePressureProjections(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
