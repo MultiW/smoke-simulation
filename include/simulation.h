@@ -8,6 +8,7 @@
 #include "external_forces.h"
 #include "advection.h"
 #include "staggered_grid.h"
+#include "constants.h"
 
 #include <igl/grid.h>
 
@@ -17,27 +18,6 @@
 #include <time.h>
 #include <iostream>
 
-
-// TODO: give more appropriate name for file
-
-// =========================
-// === Tuning parameters ===
-// =========================
-// dimensions of the smoke box
-const Eigen::Vector3i BOX_DIM(200, 100, 100);
-
-// dimensions of staggered grid to compute pressure
-// - NOTE: GRID_DIM - 1 (along all dimensions) must have the same 
-// - propertions as BOX_DIM
-const Eigen::Vector3i GRID_DIM(21, 11, 11);
-
-// smoke particle count
-Eigen::Vector3d SMOKE_DIM(20, 20, 20);
-
-double INIT_DENSITY = 6.9;
-
-double AMBIENT_TEMP = 300;
-// =========================
 
 // Predefined colors
 const Eigen::RowVector3d orange(1.0, 0.7, 0.2);
@@ -119,7 +99,7 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::M
 
 	initParticleVelocity(q, qdot);
 
-	staggeredGrid = StaggeredGrid(smokeBox, GRID_DIM, INIT_DENSITY, AMBIENT_TEMP);
+	staggeredGrid = StaggeredGrid(smokeBox, GRID_DIM);
 	staggeredGrid.setGridVelocities(q, qdot);
 
 	// TODO: DELETE. Testing if initialization of staggered grid points is correct

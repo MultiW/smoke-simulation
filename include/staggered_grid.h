@@ -19,12 +19,11 @@ class StaggeredGrid {
 	Grid pGrid;
 
 	// Smoke-specific components
-	double ambientTemp;
 	Grid tempGrid; // temperature
-	Grid densityGrid;
+	Grid densityGrid; // fluid density
 public:
 	StaggeredGrid();
-	StaggeredGrid(const Eigen::AlignedBox3d& box, const Eigen::Vector3i& dim, double ambientTemp, double defaultDensity);
+	StaggeredGrid(const Eigen::AlignedBox3d& box, const Eigen::Vector3i& dim);
 
 	void setGridVelocities(const Eigen::MatrixXd& q, const Eigen::MatrixXd& qdot);
 

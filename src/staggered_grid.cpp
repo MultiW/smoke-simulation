@@ -1,10 +1,10 @@
 #include "staggered_grid.h"
 #include "util.h"
 #include "grid_util.h"
+#include "constants.h"
 
 #include <Eigen/Sparse>
 #include <Eigen/IterativeLinearSolvers>
-
 
 #include <igl/grid.h>
 
@@ -16,17 +16,14 @@
 typedef Eigen::Triplet<double> T;
 
 
-StaggeredGrid::StaggeredGrid() : ambientTemp(0) {}
+StaggeredGrid::StaggeredGrid() {}
 
 StaggeredGrid::StaggeredGrid(
 	const Eigen::AlignedBox3d& box,
-	const Eigen::Vector3i& dim,
-	double ambientTemp,
-	double defaultDensity
+	const Eigen::Vector3i& dim
 ) :
 	box(box),
 	dim(dim),
-	ambientTemp(ambientTemp),
 	uGrid(Grid(dim(0), dim(1) - 1.0, dim(2) - 1.0)),
 	vGrid(Grid(dim(0)- 1.0, dim(1), dim(2) - 1.0)),
 	wGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2))),
@@ -45,8 +42,8 @@ StaggeredGrid::StaggeredGrid(
 	this->densityGrid.setWorldPoints(cellCenters, this->getCellSize());
 
 	// Set default temperature and density
-	this->tempGrid.setConstantValue(ambientTemp);
-	this->densityGrid.setConstantValue(defaultDensity);
+	this->tempGrid.setConstantValue(AMBIENT_TEMP);
+	this->densityGrid.setConstantValue(FLUID_DENSITY);
 }
 
 // ======================
@@ -146,6 +143,7 @@ void StaggeredGrid::getInterpolatedVelocities(Eigen::MatrixXd& q, Eigen::MatrixX
 void StaggeredGrid::updateGridVelocities()
 {
 	// TODO: James
+	// Use pressure values to update the grid velocities
 }
 
 void safe_push_back(std::vector<T>& vector, int row, int i, int j, int k, int d1, int d2, int d3, double val) {
@@ -201,12 +199,10 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt)
 	A.setZero();
 	std::vector<T> coefficients;
 
-	// TODO: remove pj
 	// per-cell variables: pj, fj
-	Eigen::VectorXd pj, qj;
+	Eigen::VectorXd qj;
 	qj.resize(6);
 	qj.setZero();
-	pj.resize(7);
 
 	selection.resize(6, 6);
 	selection.setZero();
@@ -223,7 +219,6 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt)
 					wGrid(i, j, k).value, 
 					wGrid(i, j, k + 1).value;
 
-				//pj << pGrid(i - 1, j, k).value, pGrid(i + 1, j, k).value, pGrid(i, j, k).value, pGrid(i, j - 1, k).value, pGrid(i, j + 1, k).value, pGrid(i, j, k - 1).value, pGrid(i, j, k + 1).value;
 				selection.setIdentity();
 
 				if (i == 0) {
@@ -248,12 +243,9 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt)
 
 				Aj = B * selection * D;
 
-				// TODO: use density from densityGrid
-				double density = 100;
-
 				// Assemble to global A, f 
 				int row = mapTo1d(i, j, k, d1, d2, d3);
-				f(row) = (B * selection *qj)(0) * density / dt;
+				f(row) = (B * selection *qj)(0) * AIR_DENSITY / dt;
 
 				safe_push_back(coefficients, row, i - 1, j, k, d1, d2, d3, Aj(0));
 				safe_push_back(coefficients, row, i + 1, j, k, d1, d2, d3, Aj(1));
@@ -272,8 +264,6 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt)
 	Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower | Eigen::Upper> cg;
 	cg.compute(A);
 	p = cg.solve(f);
-
-
 }
 
 
