@@ -143,7 +143,51 @@ void StaggeredGrid::getInterpolatedVelocities(Eigen::MatrixXd& q, Eigen::MatrixX
 void StaggeredGrid::updateGridVelocities()
 {
 	// TODO: James
-	// Use pressure values to update the grid velocities
+
+	int d1 = this->uGrid.size(0);
+	int d2 = this->uGrid.size(1);
+	int d3 = this->uGrid.size(2);
+
+	for (int i = 0; i < d1; i++) {
+		for (int j = 0; j < d2; j++) {
+			for (int k = 0; k < d3; k++) {
+				if (i == 0) {
+					continue;
+				}
+				uGrid(i, j, k).value = pGrid(i, j, k).value - pGrid(i-1, j, k).value;
+			}
+		}
+	}
+
+	d1 = this->vGrid.size(0);
+	d2 = this->vGrid.size(1);
+	d3 = this->vGrid.size(2);
+
+	for (int i = 0; i < d1; i++) {
+		for (int j = 0; j < d2; j++) {
+			for (int k = 0; k < d3; k++) {
+				if (j == 0) {
+					continue;
+				}
+				vGrid(i, j, k).value = pGrid(i, j, k).value - pGrid(i, j - 1, k).value;
+			}
+		}
+	}
+
+	d1 = this->wGrid.size(0);
+	d2 = this->wGrid.size(1);
+	d3 = this->wGrid.size(2);
+
+	for (int i = 0; i < d1; i++) {
+		for (int j = 0; j < d2; j++) {
+			for (int k = 0; k < d3; k++) {
+				if (k == 0) {
+					continue;
+				}
+				wGrid(i, j, k).value = pGrid(i, j, k).value - pGrid(i, j, k - 1).value;
+			}
+		}
+	}
 }
 
 void safe_push_back(std::vector<T>& vector, int row, int i, int j, int k, int d1, int d2, int d3, double val) {
