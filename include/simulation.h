@@ -38,15 +38,15 @@ int boxId;
 // Update location and velocity of smoke particles
 inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double t)
 {
-	// TODO (James): add boundary checks on points
-	advection(q, qdot, dt);
-
 	// TODO: compute external forces for smoke
 	external_forces(q, qdot, dt);
 
 	staggeredGrid.setGridVelocities(q, qdot);
 	staggeredGrid.applyVorticityConfinement(q, qdot);
 	staggeredGrid.computePressureProjections(q, qdot, dt);
+
+	// TODO: consider boundary checks as a last resort
+	advection(q, qdot, dt);
 }
 
 inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::MatrixXd& q, Eigen::AlignedBox3d& boundary)
@@ -68,16 +68,19 @@ inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::
 
 inline void initParticleVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
 {
+	// TODO: how should velocity be initialized
 	qdot.resize(q.rows(), q.cols());
-	std::srand((unsigned) std::time(NULL));
-	for (int j = 0; j < qdot.cols(); j++)
-	{
-		for (int i = 0; i < qdot.rows(); i++)
-		{
-			// iterate in column-major order, the default order for Eigen matrix
-			qdot(i, j) = (double) std::rand() / RAND_MAX * 100.0;
-		}
-	}
+	qdot.setZero();
+	qdot.col(1).setConstant(-1);
+	//std::srand((unsigned) std::time(NULL));
+	//for (int j = 0; j < qdot.cols(); j++)
+	//{
+	//	for (int i = 0; i < qdot.rows(); i++)
+	//	{
+	//		// iterate in column-major order, the default order for Eigen matrix
+	//		qdot(i, j) = (double) std::rand() / RAND_MAX * 100.0;
+	//	}
+	//}
 }
 
 // Must be called first

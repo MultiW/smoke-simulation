@@ -42,7 +42,7 @@ StaggeredGrid::StaggeredGrid(
 	this->densityGrid.setWorldPoints(cellCenters, this->getCellSize());
 
 	// Set default temperature and density
-	this->tempGrid.setConstantValue(AMBIENT_TEMP);
+	this->tempGrid.setConstantValue(FLUID_TEMP);
 	this->densityGrid.setConstantValue(FLUID_DENSITY);
 }
 

@@ -17,6 +17,7 @@ const Eigen::Vector3d SMOKE_DIM(20, 20, 20);
 const double FLUID_DENSITY = 2.0;
 const double AIR_DENSITY = 1.0;
 
-const double AMBIENT_TEMP = 300;
+const double FLUID_TEMP = 1;
+const double AMBIENT_TEMP = 0;
 
 #endif // !CONSTANTS_H
