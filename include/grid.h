@@ -27,13 +27,14 @@ public:
 	/*
 	* For each point q, interpolate its qdotCol values from enclosing cube's values
 	*/
-	void interpolateToPoints(const Eigen::MatrixXd& q, Eigen::Ref<Eigen::VectorXd> qdotCol);
+	void interpolatePoints(const Eigen::MatrixXd& q, Eigen::Ref<Eigen::VectorXd> qdotCol);
 
 	/*
-	* Set the grid values based on the given points' values.
+	* Set the grid values based on the weighted sum of the given points' values.
+	* - Use trilinear interpolation weights for each point
 	* Set to zero if no points are inside a cube
 	*/
-	void interpolateGridValues(const Eigen::MatrixXd& q, const Eigen::VectorXd qdotCol);
+	void setGridValues(const Eigen::MatrixXd& q, const Eigen::VectorXd qdotCol);
 
 	// sorted x, y, z values of the grid
 	std::vector<double> const& x();
@@ -56,6 +57,12 @@ private:
 
 	/* Set values of all points to 0 */
 	void clearValues();
+
+	/* Returns the value of the identified point. Return 0 if out of bounds */
+	double safeGet(int i, int j, int k);
+
+	/* Add to the value of the given point. Do nothing if given indices are out of bounds */
+	void safeAdd(int i, int j, int k, double value);
 };
 
 #endif

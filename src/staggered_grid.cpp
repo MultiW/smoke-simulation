@@ -26,11 +26,11 @@ StaggeredGrid::StaggeredGrid(const Eigen::AlignedBox3d& box, const Eigen::Vector
 	wGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2))),
 	pGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0))
 {
-	// World-space locations of grid-points
+	// Generate grids
 	Eigen::MatrixXd u, v, w, p;
 	this->createGridPoints(u, v, w, p);
 
-	// Update world points of grids
+	// Convert to Grid object
 	this->uGrid.setWorldPoints(u, this->getCellSize());
 	this->vGrid.setWorldPoints(v, this->getCellSize());
 	this->wGrid.setWorldPoints(w, this->getCellSize());
@@ -41,11 +41,10 @@ StaggeredGrid::StaggeredGrid(const Eigen::AlignedBox3d& box, const Eigen::Vector
 // === Public classes ===
 // ======================
 
-void StaggeredGrid::updateSimulation(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double density) {
-	// TODO: uncomment when all have been implemented
-	//this->setGridVelocities(q, qdot);
-	//this->updateVelocityAndPressure(dt, density);
-	//this->getInterpolatedVelocities(q, qdot);
+void StaggeredGrid::computePressureProjections(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double density) {
+	this->setGridVelocities(q, qdot);
+	this->updateVelocityAndPressure(dt, density);
+	this->getInterpolatedVelocities(q, qdot);
 }
 
 double StaggeredGrid::getCellSize()
@@ -101,16 +100,16 @@ void StaggeredGrid::createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eig
 
 void StaggeredGrid::setGridVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) 
 {
-	this->uGrid.interpolateGridValues(q, qdot.col(0));
-	this->vGrid.interpolateGridValues(q, qdot.col(1));
-	this->wGrid.interpolateGridValues(q, qdot.col(2));
+	this->uGrid.setGridValues(q, qdot.col(0));
+	this->vGrid.setGridValues(q, qdot.col(1));
+	this->wGrid.setGridValues(q, qdot.col(2));
 }
 
 void StaggeredGrid::getInterpolatedVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) 
 {
-	this->uGrid.interpolateToPoints(q, qdot.col(0));
-	this->vGrid.interpolateToPoints(q, qdot.col(1));
-	this->wGrid.interpolateToPoints(q, qdot.col(2));
+	this->uGrid.interpolatePoints(q, qdot.col(0));
+	this->vGrid.interpolatePoints(q, qdot.col(1));
+	this->wGrid.interpolatePoints(q, qdot.col(2));
 }
 
 void StaggeredGrid::updateVelocityAndPressure(double dt, double density) 
@@ -118,7 +117,7 @@ void StaggeredGrid::updateVelocityAndPressure(double dt, double density)
 	Eigen::VectorXd p;
 	this->computePressure(p, dt, density);
 
-	// apply new pressure values to pGrid
+	// apply computed pressure values to pGrid
 	this->pGrid.setPointValues(p);
 
 	// TODO: update velocity based on pressure
@@ -132,7 +131,7 @@ void StaggeredGrid::updateGridVelocities()
 
 void safe_push_back(std::vector<T>& vector, int row, int i, int j, int k, int d1, int d2, int d3, double val) {
 	if (val != 0) {
-		vector.push_back(T(row, mapTo1d(i - 1, j, k, d1, d2, d3), val));
+		vector.push_back(T(row, mapTo1d(i, j, k, d1, d2, d3), val));
 	}
 }
 

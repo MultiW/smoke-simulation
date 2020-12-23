@@ -57,15 +57,11 @@ int boxId;
 inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double t)
 {	
 	// TODO: add boundary checks on points
-
-	// Update position q
 	advection(q, qdot, dt);
 
-	// Update velocity qdot
 	external_forces(q, qdot, dt);
 
-	// simulate pressure
-	staggeredGrid.updateSimulation(q, qdot, dt, density);
+	staggeredGrid.computePressureProjections(q, qdot, dt, density);
 }
 
 inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::MatrixXd& q, Eigen::AlignedBox3d& boundary)

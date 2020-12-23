@@ -2,6 +2,8 @@
 #include "grid_util.h"
 #include "util.h"
 
+#include <stdio.h>
+
 Grid::Grid() {}
 
 Grid::Grid(size_t d1, size_t d2, size_t d3):
@@ -55,7 +57,7 @@ void Grid::setPointValues(const Eigen::VectorXd& newValues)
 	}
 }
 
-void Grid::interpolateToPoints(const Eigen::MatrixXd& q, Eigen::Ref<Eigen::VectorXd> qdotCol)
+void Grid::interpolatePoints(const Eigen::MatrixXd& q, Eigen::Ref<Eigen::VectorXd> qdotCol)
 {
 	Eigen::RowVector3d point;
 	int xi, yi, zi; // cell in which point is located
@@ -75,19 +77,18 @@ void Grid::interpolateToPoints(const Eigen::MatrixXd& q, Eigen::Ref<Eigen::Vecto
 
 		// trilinear interpolation from all corners of current cell
 		qdotCol(i) = 0; // clear velocity value
-		qdotCol(i) += this->grid(xi, yi, zi).value * (this->cellSize - x) * (this->cellSize - y) * (this->cellSize - z);
-		qdotCol(i) += this->grid(xi + 1, yi, zi).value * x * (this->cellSize - y) * (this->cellSize - z);
-		qdotCol(i) += this->grid(xi, yi + 1, zi).value * (this->cellSize - x) * y * (this->cellSize - z);
-		qdotCol(i) += this->grid(xi, yi, zi + 1).value * (this->cellSize - x) * (this->cellSize - y) * z;
-		qdotCol(i) += this->grid(xi + 1, yi, zi + 1).value * x * (this->cellSize - y) * z;
-		qdotCol(i) += this->grid(xi, yi + 1, zi + 1).value * (this->cellSize - x) * y * z;
-		qdotCol(i) += this->grid(xi + 1, yi + 1, zi).value * x * y * (this->cellSize - z);
-		qdotCol(i) += this->grid(xi + 1, yi + 1, zi + 1).value * x * y * z;
+		qdotCol(i) += this->safeGet(xi, yi, zi) * (this->cellSize - x) * (this->cellSize - y) * (this->cellSize - z);
+		qdotCol(i) += this->safeGet(xi + 1, yi, zi) * x * (this->cellSize - y) * (this->cellSize - z);
+		qdotCol(i) += this->safeGet(xi, yi + 1, zi) * (this->cellSize - x) * y * (this->cellSize - z);
+		qdotCol(i) += this->safeGet(xi, yi, zi + 1) * (this->cellSize - x) * (this->cellSize - y) * z;
+		qdotCol(i) += this->safeGet(xi + 1, yi, zi + 1) * x * (this->cellSize - y) * z;
+		qdotCol(i) += this->safeGet(xi, yi + 1, zi + 1) * (this->cellSize - x) * y * z;
+		qdotCol(i) += this->safeGet(xi + 1, yi + 1, zi) * x * y * (this->cellSize - z);
+		qdotCol(i) += this->safeGet(xi + 1, yi + 1, zi + 1) * x * y * z;
 	}
 }
 
-
-void Grid::interpolateGridValues(const Eigen::MatrixXd& q, const Eigen::VectorXd qdotCol)
+void Grid::setGridValues(const Eigen::MatrixXd& q, const Eigen::VectorXd qdotCol)
 {
 	this->clearValues();
 
@@ -108,14 +109,38 @@ void Grid::interpolateGridValues(const Eigen::MatrixXd& q, const Eigen::VectorXd
 		z = point(2) - this->grid(xi, yi, zi).worldPoint(2);
 
 		// update current cell's values with current point. Use weights from trilinear interpolation
-		this->grid(xi, yi, zi).value += qdotCol(i) * (this->cellSize - x) * (this->cellSize - y) * (this->cellSize - z);
-		this->grid(xi + 1, yi, zi).value += qdotCol(i) * x * (this->cellSize - y) * (this->cellSize - z);
-		this->grid(xi, yi + 1, zi).value += qdotCol(i) * (this->cellSize - x) * y * (this->cellSize - z);
-		this->grid(xi, yi, zi + 1).value += qdotCol(i) * (this->cellSize - x) * (this->cellSize - y) * z;
-		this->grid(xi + 1, yi, zi + 1).value += qdotCol(i) * x * (this->cellSize - y) * z;
-		this->grid(xi, yi + 1, zi + 1).value += qdotCol(i) * (this->cellSize - x) * y * z;
-		this->grid(xi + 1, yi + 1, zi).value += qdotCol(i) * x * y * (this->cellSize - z);
-		this->grid(xi + 1, yi + 1, zi + 1).value += qdotCol(i) * x * y * z;
+		//printf("works? %d %d %d\n", xi, yi, zi);
+		this->safeAdd(xi, yi, zi, qdotCol(i) * (this->cellSize - x) * (this->cellSize - y) * (this->cellSize - z));
+		this->safeAdd(xi + 1, yi, zi, qdotCol(i) * x * (this->cellSize - y) * (this->cellSize - z));
+		this->safeAdd(xi, yi + 1, zi, qdotCol(i) * (this->cellSize - x) * y * (this->cellSize - z));
+		this->safeAdd(xi, yi, zi + 1, qdotCol(i) * (this->cellSize - x) * (this->cellSize - y) * z);
+		this->safeAdd(xi + 1, yi, zi + 1, qdotCol(i) * x * (this->cellSize - y) * z);
+		this->safeAdd(xi, yi + 1, zi + 1, qdotCol(i) * (this->cellSize - x) * y * z);
+		this->safeAdd(xi + 1, yi + 1, zi, qdotCol(i) * x * y * (this->cellSize - z));
+		this->safeAdd(xi + 1, yi + 1, zi + 1, qdotCol(i) * x * y * z);
+		//printf("works\n");
+	}
+}
+
+
+double Grid::safeGet(int i, int j, int k)
+{
+	if (i >= 0 && i < this->size(0) &&
+		j >= 0 && j < this->size(1) &&
+		k >= 0 && k < this->size(2))
+	{
+		return this->grid(i, j, k).value;
+	}
+	return 0;
+}
+
+void Grid::safeAdd(int i, int j, int k, double value)
+{
+	if (i >= 0 && i < this->size(0) &&
+		j >= 0 && j < this->size(1) &&
+		k >= 0 && k < this->size(2))
+	{
+		this->grid(i, j, k).value += value;
 	}
 }
 

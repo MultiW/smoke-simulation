@@ -20,7 +20,16 @@ class StaggeredGrid {
 public:
 	StaggeredGrid();
 	StaggeredGrid(const Eigen::AlignedBox3d& box, const Eigen::Vector3i& dim);
-	void updateSimulation(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double density);
+
+	/* 
+	* 1. Update grid velocities with particle velocities
+	* 2. Compute pressure using grid velocities
+	* 3. Update grid velocities using pressure
+	* 4. Interpolate particle velocities using grid velocities
+	*/
+	void computePressureProjections(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double density);
+
+	void setGridVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);
 
 	// For testing
 	void getGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);
@@ -30,7 +39,6 @@ private:
 	void createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);
 
 	// Convert between particles velocities and grid velocities
-	void setGridVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);
 	void getInterpolatedVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);
 
 	void updateVelocityAndPressure(double dt, double density);
