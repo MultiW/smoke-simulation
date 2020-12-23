@@ -57,7 +57,7 @@ void StaggeredGrid::setGridVelocities(const Eigen::MatrixXd& q, const Eigen::Mat
 	this->wGrid.setGridValues(q, qdot.col(2));
 }
 
-void StaggeredGrid::updateSmokeAndDensity()
+void StaggeredGrid::updateTemperatureAndDensity()
 {
 	// TODO: Xin
 }

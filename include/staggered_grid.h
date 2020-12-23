@@ -27,7 +27,7 @@ public:
 
 	void setGridVelocities(const Eigen::MatrixXd& q, const Eigen::MatrixXd& qdot);
 
-	void updateSmokeAndDensity();
+	void updateTemperatureAndDensity();
 
 	void applyVorticityConfinement(const Eigen::MatrixXd& q, const Eigen::MatrixXd& qdot);
 
