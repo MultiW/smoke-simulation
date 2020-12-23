@@ -146,13 +146,18 @@ void Grid::safeAdd(int i, int j, int k, double value)
 
 void Grid::clearValues()
 {
+	this->setConstantValue(0);
+}
+
+void Grid::setConstantValue(double value)
+{
 	for (int i = 0; i < this->size(0); i++)
 	{
 		for (int j = 0; j < this->size(1); j++)
 		{
 			for (int k = 0; k < this->size(2); k++)
 			{
-				this->grid(i, j, k).value = 0;
+				this->grid(i, j, k).value = value;
 			}
 		}
 	}

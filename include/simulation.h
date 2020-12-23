@@ -34,7 +34,9 @@ const Eigen::Vector3i GRID_DIM(21, 11, 11);
 // smoke particle count
 Eigen::Vector3d SMOKE_DIM(20, 20, 20);
 
-double density = 6.9;
+double INIT_DENSITY = 6.9;
+
+double AMBIENT_TEMP = 300;
 // =========================
 
 // Predefined colors
@@ -55,13 +57,16 @@ int boxId;
 
 // Update location and velocity of smoke particles
 inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double t)
-{	
-	// TODO: add boundary checks on points
+{
+	// TODO (James): add boundary checks on points
 	advection(q, qdot, dt);
 
+	// TODO: compute external forces for smoke
 	external_forces(q, qdot, dt);
 
-	staggeredGrid.computePressureProjections(q, qdot, dt, density);
+	staggeredGrid.setGridVelocities(q, qdot);
+	staggeredGrid.applyVorticityConfinement(q, qdot);
+	staggeredGrid.computePressureProjections(q, qdot, dt);
 }
 
 inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::MatrixXd& q, Eigen::AlignedBox3d& boundary)
@@ -114,7 +119,8 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::M
 
 	initParticleVelocity(q, qdot);
 
-	staggeredGrid = StaggeredGrid(smokeBox, GRID_DIM);
+	staggeredGrid = StaggeredGrid(smokeBox, GRID_DIM, INIT_DENSITY, AMBIENT_TEMP);
+	staggeredGrid.setGridVelocities(q, qdot);
 
 	// TODO: DELETE. Testing if initialization of staggered grid points is correct
 	Eigen::MatrixXd u, v, w, p;

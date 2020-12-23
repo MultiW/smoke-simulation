@@ -16,34 +16,68 @@
 typedef Eigen::Triplet<double> T;
 
 
-StaggeredGrid::StaggeredGrid() {}
+StaggeredGrid::StaggeredGrid() : ambientTemp(0) {}
 
-StaggeredGrid::StaggeredGrid(const Eigen::AlignedBox3d& box, const Eigen::Vector3i& dim) :
+StaggeredGrid::StaggeredGrid(
+	const Eigen::AlignedBox3d& box,
+	const Eigen::Vector3i& dim,
+	double ambientTemp,
+	double defaultDensity
+) :
 	box(box),
 	dim(dim),
+	ambientTemp(ambientTemp),
 	uGrid(Grid(dim(0), dim(1) - 1.0, dim(2) - 1.0)),
 	vGrid(Grid(dim(0)- 1.0, dim(1), dim(2) - 1.0)),
 	wGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2))),
 	pGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0))
 {
 	// Generate grids
-	Eigen::MatrixXd u, v, w, p;
-	this->createGridPoints(u, v, w, p);
+	Eigen::MatrixXd u, v, w, cellCenters;
+	this->createGridPoints(u, v, w, cellCenters);
 
 	// Convert to Grid object
 	this->uGrid.setWorldPoints(u, this->getCellSize());
 	this->vGrid.setWorldPoints(v, this->getCellSize());
 	this->wGrid.setWorldPoints(w, this->getCellSize());
-	this->pGrid.setWorldPoints(p, this->getCellSize());
+	this->pGrid.setWorldPoints(cellCenters, this->getCellSize());
+	this->tempGrid.setWorldPoints(cellCenters, this->getCellSize());
+	this->densityGrid.setWorldPoints(cellCenters, this->getCellSize());
+
+	// Set default temperature and density
+	this->tempGrid.setConstantValue(ambientTemp);
+	this->densityGrid.setConstantValue(defaultDensity);
 }
 
 // ======================
 // === Public classes ===
 // ======================
 
-void StaggeredGrid::computePressureProjections(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt, double density) {
-	this->setGridVelocities(q, qdot);
-	this->updateVelocityAndPressure(dt, density);
+void StaggeredGrid::setGridVelocities(const Eigen::MatrixXd& q, const Eigen::MatrixXd& qdot)
+{
+	this->uGrid.setGridValues(q, qdot.col(0));
+	this->vGrid.setGridValues(q, qdot.col(1));
+	this->wGrid.setGridValues(q, qdot.col(2));
+}
+
+void StaggeredGrid::updateSmokeAndDensity()
+{
+	// TODO: Xin
+}
+
+void StaggeredGrid::applyVorticityConfinement(const Eigen::MatrixXd& q, const Eigen::MatrixXd& qdot)
+{
+	// TODO: Xin
+}
+
+void StaggeredGrid::computePressureProjections(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double dt) {
+	Eigen::VectorXd p;
+	this->computePressure(p, dt);
+	this->pGrid.setPointValues(p);
+
+	// Update grid velocities using pressure
+	this->updateGridVelocities();
+
 	this->getInterpolatedVelocities(q, qdot);
 }
 
@@ -94,16 +128,9 @@ void StaggeredGrid::createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eig
 	addToCol(p, 2, cellHalfLen);
 }
 
-// ======================================
-// === Computing pressure projections ===
-// ======================================
-
-void StaggeredGrid::setGridVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) 
-{
-	this->uGrid.setGridValues(q, qdot.col(0));
-	this->vGrid.setGridValues(q, qdot.col(1));
-	this->wGrid.setGridValues(q, qdot.col(2));
-}
+// ========================================
+// === Set grid and particle velocities ===
+// ========================================
 
 void StaggeredGrid::getInterpolatedVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) 
 {
@@ -112,21 +139,13 @@ void StaggeredGrid::getInterpolatedVelocities(Eigen::MatrixXd& q, Eigen::MatrixX
 	this->wGrid.interpolatePoints(q, qdot.col(2));
 }
 
-void StaggeredGrid::updateVelocityAndPressure(double dt, double density) 
-{
-	Eigen::VectorXd p;
-	this->computePressure(p, dt, density);
-
-	// apply computed pressure values to pGrid
-	this->pGrid.setPointValues(p);
-
-	// TODO: update velocity based on pressure
-	this->updateGridVelocities();
-}
+// ======================================
+// === Computing pressure projections ===
+// ======================================
 
 void StaggeredGrid::updateGridVelocities()
 {
-
+	// TODO: James
 }
 
 void safe_push_back(std::vector<T>& vector, int row, int i, int j, int k, int d1, int d2, int d3, double val) {
@@ -135,7 +154,7 @@ void safe_push_back(std::vector<T>& vector, int row, int i, int j, int k, int d1
 	}
 }
 
-void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt, double density)
+void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt)
 {
 	// Number of cells in staggered grid (aka number of pressure points)
 	int d1 = this->pGrid.size(0);
@@ -229,15 +248,13 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt, double density
 
 				Aj = B * selection * D;
 
-
+				// TODO: use density from densityGrid
+				double density = 100;
 
 				// Assemble to global A, f 
 				int row = mapTo1d(i, j, k, d1, d2, d3);
 				f(row) = (B * selection *qj)(0) * density / dt;
 
-
-
-				//TODO: Figure out borders
 				safe_push_back(coefficients, row, i - 1, j, k, d1, d2, d3, Aj(0));
 				safe_push_back(coefficients, row, i + 1, j, k, d1, d2, d3, Aj(1));
 				safe_push_back(coefficients, row, i, j, k, d1, d2, d3, Aj(2));
@@ -248,8 +265,6 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p, double dt, double density
 			}
 		}
 	}
-
-
 
 	A.setFromTriplets(coefficients.begin(), coefficients.end());
 
