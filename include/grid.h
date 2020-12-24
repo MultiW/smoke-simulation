@@ -50,6 +50,9 @@ public:
 	/* Add to the value of the given point. Do nothing if given indices are out of bounds */
 	void safeAdd(int i, int j, int k, double value);
 
+	bool isInBounds(int i, int j, int k);
+	bool isPointInBounds(double x, double y, double z);
+
 	// Debugging
 	void dumpValues();
 

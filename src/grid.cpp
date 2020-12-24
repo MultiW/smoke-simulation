@@ -120,9 +120,7 @@ void Grid::setGridValues(const Eigen::MatrixXd& q, const Eigen::VectorXd qdotCol
 
 double Grid::safeGet(int i, int j, int k)
 {
-	if (i >= 0 && i < this->size(0) &&
-		j >= 0 && j < this->size(1) &&
-		k >= 0 && k < this->size(2))
+	if (this->isInBounds(i, j, k))
 	{
 		return this->grid(i, j, k).value;
 	}
@@ -131,9 +129,7 @@ double Grid::safeGet(int i, int j, int k)
 
 void Grid::safeAdd(int i, int j, int k, double value)
 {
-	if (i >= 0 && i < this->size(0) &&
-		j >= 0 && j < this->size(1) &&
-		k >= 0 && k < this->size(2))
+	if (this->isInBounds(i, j, k))
 	{
 		this->grid(i, j, k).value += value;
 	}
@@ -173,6 +169,21 @@ std::vector<double> const& Grid::z()
 	return this->_z;
 }
 
+
+bool Grid::isInBounds(int i, int j, int k)
+{
+	return i >= 0 && i < this->size(0) &&
+		j >= 0 && j < this->size(1) &&
+		k >= 0 && k < this->size(2);
+}
+
+
+bool Grid::isPointInBounds(double x, double y, double z)
+{
+	return x >= this->_x.front() && x <= this->_x.back() &&
+		y >= this->_y.front() && y <= this->_y.back() &&
+		z >= this->_z.front() && z <= this->_z.back();
+}
 
 void Grid::dumpValues()
 {

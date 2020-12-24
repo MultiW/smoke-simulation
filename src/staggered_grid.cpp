@@ -191,7 +191,10 @@ void StaggeredGrid::advectCenterValues(Grid& grid)
 				prevPosition = grid(i, j, k).worldPoint - dt * velocityAtCenter;
 
 				// This center position's temperature at the next timestep will be that imaginary particle's temperature
-				grid(i, j, k).value = grid.interpolatePoint(prevPosition);
+				if (grid.isPointInBounds(prevPosition(0), prevPosition(1), prevPosition(2)))
+				{
+					grid(i, j, k).value = grid.interpolatePoint(prevPosition);
+				}
 			}
 		}
 	}
