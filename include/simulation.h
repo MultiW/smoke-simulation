@@ -70,7 +70,7 @@ inline void initParticleVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
 	// TODO: how should velocity be initialized
 	qdot.resize(q.rows(), q.cols());
 	qdot.setZero();
-	qdot.col(1).setConstant(-1);
+	qdot.col(1).setConstant(-0.01);
 	//std::srand((unsigned) std::time(NULL));
 	//for (int j = 0; j < qdot.cols(); j++)
 	//{

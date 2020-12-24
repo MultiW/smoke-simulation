@@ -56,5 +56,6 @@ private:
 	void advectCenterValues(Grid& grid);
 
 	void updateGridVelocities();
+
 	void computePressure(Eigen::VectorXd p);
 };

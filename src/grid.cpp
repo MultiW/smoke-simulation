@@ -36,11 +36,6 @@ void Grid::setWorldPoints(const Eigen::MatrixXd& points, double cellSize)
 			grid(xIdx, yIdx, zIdx).gridPoint = Eigen::Vector3i(xIdx, yIdx, zIdx);
 			grid(xIdx, yIdx, zIdx).worldPoint = Eigen::Vector3d(currPoint(0), currPoint(1), currPoint(2));
 		}
-		else
-		{
-			// TODO: REMOVE. For debugging
-			printf("Not adding point: %d %d %d\n", xIdx, yIdx, zIdx);
-		}
 	}
 
 	this->cellSize = cellSize;

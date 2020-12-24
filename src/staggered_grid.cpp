@@ -183,9 +183,9 @@ void StaggeredGrid::advectCenterValues(Grid& grid)
 			for (int k = 0; k < d3; k++) 
 			{
 				// Get location of the (imaginary) particle that will reach this center position after timestep dt
-				velocityAtCenter(0) = (this->uGrid(i, j, k).value + this->uGrid(i + 1, j, k).value) / 2;
-				velocityAtCenter(1) = (this->uGrid(i, j, k).value + this->uGrid(i, j + 1, k).value) / 2;
-				velocityAtCenter(2) = (this->uGrid(i, j, k).value + this->uGrid(i, j, k + 1).value) / 2;
+				velocityAtCenter(0) = (this->uGrid(i, j, k).value + this->uGrid(i + 1, j, k).value) / 2.0;
+				velocityAtCenter(1) = (this->uGrid(i, j, k).value + this->uGrid(i, j + 1, k).value) / 2.0;
+				velocityAtCenter(2) = (this->uGrid(i, j, k).value + this->uGrid(i, j, k + 1).value) / 2.0;
 				prevPosition = grid(i, j, k).worldPoint - dt * velocityAtCenter;
 
 				// This center position's temperature at the next timestep will be that imaginary particle's temperature
@@ -198,22 +198,19 @@ void StaggeredGrid::advectCenterValues(Grid& grid)
 // ======================================
 // === Computing pressure projections ===
 // ======================================
-
 void StaggeredGrid::updateGridVelocities()
 {
-	// TODO: James
+	double dp; // change in pressure
+	double cellSize = this->getCellSize();
 
 	int d1 = this->uGrid.size(0);
 	int d2 = this->uGrid.size(1);
 	int d3 = this->uGrid.size(2);
-
-	for (int i = 0; i < d1; i++) {
+	for (int i = 1; i < d1 - 1; i++) {
 		for (int j = 0; j < d2; j++) {
 			for (int k = 0; k < d3; k++) {
-				if (i == 0) {
-					continue;
-				}
-				uGrid(i, j, k).value = pGrid(i, j, k).value - pGrid(i-1, j, k).value;
+				dp = (pGrid(i, j, k).value - pGrid(i - 1, j, k).value) / cellSize;
+				uGrid(i, j, k).value -= dt / AIR_DENSITY * dp;
 			}
 		}
 	}
@@ -223,12 +220,10 @@ void StaggeredGrid::updateGridVelocities()
 	d3 = this->vGrid.size(2);
 
 	for (int i = 0; i < d1; i++) {
-		for (int j = 0; j < d2; j++) {
+		for (int j = 1; j < d2 - 1; j++) {
 			for (int k = 0; k < d3; k++) {
-				if (j == 0) {
-					continue;
-				}
-				vGrid(i, j, k).value = pGrid(i, j, k).value - pGrid(i, j - 1, k).value;
+				dp = (pGrid(i, j, k).value - pGrid(i, j - 1, k).value) / cellSize;
+				vGrid(i, j, k).value -= dt / AIR_DENSITY * dp;
 			}
 		}
 	}
@@ -239,11 +234,9 @@ void StaggeredGrid::updateGridVelocities()
 
 	for (int i = 0; i < d1; i++) {
 		for (int j = 0; j < d2; j++) {
-			for (int k = 0; k < d3; k++) {
-				if (k == 0) {
-					continue;
-				}
-				wGrid(i, j, k).value = pGrid(i, j, k).value - pGrid(i, j, k - 1).value;
+			for (int k = 1; k < d3 - 1; k++) {
+				dp = (pGrid(i, j, k).value - pGrid(i, j, k - 1).value) / cellSize;
+				wGrid(i, j, k).value -= dt / AIR_DENSITY * dp;
 			}
 		}
 	}
