@@ -381,4 +381,22 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p)
 	p = cg.solve(f);
 }
 
+void StaggeredGrid::advectPosition(Eigen::MatrixXd q) {
+	Eigen::MatrixXd qnext;
+	qnext.resize(q.rows(), q.cols());
+
+
+
+	for (int i = 0; i < q.rows(); i++) {
+		Eigen::RowVector3d point = q.row(i);
+		Eigen::RowVector3d vel;
+		vel(0) = uGrid.interpolatePoint(point);
+		vel(1) = vGrid.interpolatePoint(point);
+		vel(2) = wGrid.interpolatePoint(point);
+		
+		qnext.row(i) = point + vel*dt;
+
+	}
+}
+
 

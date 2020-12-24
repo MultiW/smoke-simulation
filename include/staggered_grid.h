@@ -41,6 +41,9 @@ public:
 	*/
 	void applyPressureProjections();
 
+	void advectPosition(Eigen::MatrixXd q);
+
+
 	// For testing
 	void getGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);
 private:
