@@ -41,8 +41,11 @@ public:
 	*/
 	void applyPressureProjections();
 
-	void advectPosition(Eigen::MatrixXd q);
+	void advectPosition(Eigen::MatrixXd &q);
 
+	void enforceBoundaries(Eigen::RowVector3d &newPoint, Eigen::RowVector3d &oldPoint);
+
+	void getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVector3d &point);
 
 	// For testing
 	void getGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);

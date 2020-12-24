@@ -423,7 +423,7 @@ double StaggeredGrid::getMaxZ()
 {
 	return this->box.corner(this->box.TopRightCeil).z();
 }
-void StaggeredGrid::advectPosition(Eigen::MatrixXd q) {
+void StaggeredGrid::advectPosition(Eigen::MatrixXd &q) {
 	Eigen::MatrixXd qnext;
 	qnext.resize(q.rows(), q.cols());
 
@@ -432,13 +432,38 @@ void StaggeredGrid::advectPosition(Eigen::MatrixXd q) {
 	for (int i = 0; i < q.rows(); i++) {
 		Eigen::RowVector3d point = q.row(i);
 		Eigen::RowVector3d vel;
-		vel(0) = uGrid.interpolatePoint(point);
-		vel(1) = vGrid.interpolatePoint(point);
-		vel(2) = wGrid.interpolatePoint(point);
+		this->getPointVelocity(vel, point);
 		
+
+
 		qnext.row(i) = point + vel*dt;
 
 	}
 }
 
+void StaggeredGrid::getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVector3d &point) {
+	velocity(0) = uGrid.interpolatePoint(point);
+	velocity(1) = vGrid.interpolatePoint(point);
+	velocity(2) = wGrid.interpolatePoint(point);
 
+
+}
+
+void StaggeredGrid::enforceBoundaries(Eigen::RowVector3d &newPoint, Eigen::RowVector3d &oldPoint) {
+
+	void sendBack = []
+
+	Eigen::RowVector3d mins;
+	mins << this->getMinX(), this->getMinY(), this->getMinZ();
+	Eigen::RowVector3d maxs;
+	maxs << this->getMaxX(), this->getMaxY(), this->getMaxZ();
+
+	for (int i = 0; i < 3; i++) {
+		if (newPoint[0] < mins[0]) {
+
+		}
+		else if (newPoint[0] > maxs[1]) {
+
+		}
+	}
+}
