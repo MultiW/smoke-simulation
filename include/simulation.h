@@ -38,13 +38,21 @@ int boxId;
 // Update location and velocity of smoke particles
 inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double t)
 {
-	// Order matters
-	staggeredGrid.setGridVelocities(q, qdot);
-	staggeredGrid.updateTemperatureAndDensity();
-	staggeredGrid.applyBuoyancyForce();
-	staggeredGrid.applyVorticityConfinement(q, qdot);
-	staggeredGrid.computePressureProjections(q, qdot);
+	// 1. update velocities
+	staggeredGrid.advectVelocities();
+	staggeredGrid.applyExternalForces();
+	staggeredGrid.applyPressureProjections();
 
+	// 2. advect temperature and density
+	staggeredGrid.updateTemperatureAndDensity();
+
+	// 3. advect particles
+	// TODO: move to staggered_grid
+	//  - 1. find v^t: current velocity of particle (using Grid.interpolate)
+	//  - 2. find v^t+1: find particle's next position (+ dt * v^t), then find velocity at that position (using Grid.interpolate)
+	//  - 3. average v^t and v^t+1
+	//  - 4. compute next position of particle using: + dt * v_avg
+	//  - Whenever a new position is computed: clip position of particle to the grid
 	advection(q, qdot, dt);
 }
 
@@ -103,6 +111,8 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::M
 
 	staggeredGrid = StaggeredGrid(smokeBox, GRID_DIM);
 	staggeredGrid.setGridVelocities(q, qdot);
+
+	// TODO: give initial velocities to MAC grid
 
 	//// TODO: DELETE. Testing if initialization of staggered grid points is correct
 	//Eigen::MatrixXd u, v, w, p;

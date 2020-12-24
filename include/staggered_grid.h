@@ -23,26 +23,23 @@ public:
 	Grid tempGrid; // temperature
 	Grid densityGrid; // fluid density
 
-
 	StaggeredGrid();
 	StaggeredGrid(const Eigen::AlignedBox3d& box, const Eigen::Vector3i& dim);
 
 	void setGridVelocities(const Eigen::MatrixXd& q, const Eigen::MatrixXd& qdot);
 
-	/* Using the velocity grids, update the temperature and density fields */
+	void advectVelocities();
+
+	/* Update the temperature and density fields using the velocity field (velocity grids) */
 	void updateTemperatureAndDensity();
 
-	/* Apply the buoyancy force to the velocity values */
-	void StaggeredGrid::applyBuoyancyForce();
-
-	void applyVorticityConfinement(const Eigen::MatrixXd& q, const Eigen::MatrixXd& qdot);
+	void applyExternalForces();
 
 	/* 
 	* 1. Compute pressure from the grid velocities
 	* 2. Update grid velocities using pressure
-	* 3. Interpolate particle velocities using grid velocities
 	*/
-	void computePressureProjections(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);
+	void applyPressureProjections();
 
 	// For testing
 	void getGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);
@@ -50,6 +47,10 @@ private:
 	double getCellSize();
 
 	void createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);
+
+	// External forces
+	void applyBuoyancyForce();
+	void applyVorticityConfinement();
 
 	/* Convert between particles velocities and grid velocities */
 	void getInterpolatedVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);

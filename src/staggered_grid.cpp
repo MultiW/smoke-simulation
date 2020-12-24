@@ -59,56 +59,30 @@ void StaggeredGrid::setGridVelocities(const Eigen::MatrixXd& q, const Eigen::Mat
 	this->wGrid.setGridValues(q, qdot.col(2));
 }
 
+void StaggeredGrid::advectVelocities()
+{
+
+}
+
 void StaggeredGrid::updateTemperatureAndDensity()
 {
 	this->advectCenterValues(this->tempGrid);
 	this->advectCenterValues(this->densityGrid);
 }
 
-void StaggeredGrid::applyBuoyancyForce()
+void StaggeredGrid::applyExternalForces()
 {
-	int d1 = this->vGrid.size(0);
-	int d2 = this->vGrid.size(1);
-	int d3 = this->vGrid.size(2);
-
-	// Buoyancy force = (0, -alpha * s + beta(T - Tamb), 0)
-	// - where alpha, beta are tuning constants
-	// - s is the density and T is the temperature
-	double fBuoy, s, T;	
-	for (int i = 0; i < d1; i++)
-	{
-		for (int j = 0; j < d2; j++)
-		{
-			for (int k = 0; k < d3; k++)
-			{
-				// TODO: how to handle boundary cases? Only use one neighbor in those cases?
-				//    - currently, the "out of bounds" neighbor is converted to a 0, 
-				//      so the s and T values are small because we still divide by 2
-				s = (this->densityGrid.safeGet(i, j, k) + this->densityGrid.safeGet(i, j - 1, k)) / 2;
-				T = (this->tempGrid.safeGet(i, j, k) + this->tempGrid.safeGet(i, j - 1, k)) / 2;
-				fBuoy = -ALPHA * s + BETA * (T - AMBIENT_TEMP);
-				this->vGrid(i, j, k).value += dt * fBuoy;
-			}
-		}
-	}
+	this->applyBuoyancyForce();
+	this->applyVorticityConfinement();
 }
 
-void StaggeredGrid::applyVorticityConfinement(const Eigen::MatrixXd& q, const Eigen::MatrixXd& qdot)
-{
-	// TODO: need more grids for vorticity, center velocity, etc.
-	// Compute omega = curl of velocity
-	Eigen::Vector3d omega;
-}
-
-void StaggeredGrid::computePressureProjections(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) {
+void StaggeredGrid::applyPressureProjections() {
 	Eigen::VectorXd p;
 	this->computePressure(p);
 	this->pGrid.setPointValues(p);
 
 	// Update grid velocities using pressure
 	this->updateGridVelocities();
-
-	this->getInterpolatedVelocities(q, qdot);
 }
 
 double StaggeredGrid::getCellSize()
@@ -199,6 +173,46 @@ void StaggeredGrid::advectCenterValues(Grid& grid)
 		}
 	}
 }
+
+// =============================
+// === Apply external forces ===
+// =============================
+void StaggeredGrid::applyBuoyancyForce()
+{
+	int d1 = this->vGrid.size(0);
+	int d2 = this->vGrid.size(1);
+	int d3 = this->vGrid.size(2);
+
+	// Buoyancy force = (0, -alpha * s + beta(T - Tamb), 0)
+	// - where alpha, beta are tuning constants
+	// - s is the density and T is the temperature
+	double fBuoy, s, T;	
+	for (int i = 0; i < d1; i++)
+	{
+		for (int j = 0; j < d2; j++)
+		{
+			for (int k = 0; k < d3; k++)
+			{
+				// TODO: how to handle boundary cases? Only use one neighbor in those cases?
+				//    - currently, the "out of bounds" neighbor is converted to a 0, 
+				//      so the s and T values are small because we still divide by 2
+				s = (this->densityGrid.safeGet(i, j, k) + this->densityGrid.safeGet(i, j - 1, k)) / 2;
+				T = (this->tempGrid.safeGet(i, j, k) + this->tempGrid.safeGet(i, j - 1, k)) / 2;
+				fBuoy = -ALPHA * s + BETA * (T - AMBIENT_TEMP);
+				this->vGrid(i, j, k).value += dt * fBuoy;
+			}
+		}
+	}
+}
+
+void StaggeredGrid::applyVorticityConfinement()
+{
+	// TODO: need more grids for vorticity, center velocity, etc.
+	// Compute omega = curl of velocity
+	Eigen::Vector3d omega;
+}
+
+
 
 // ======================================
 // === Computing pressure projections ===
