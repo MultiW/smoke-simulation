@@ -107,12 +107,7 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::M
 
 	smokeId = Visualize::addPointsToScene(q, white);
 
-	initParticleVelocity(q, qdot);
-
 	staggeredGrid = StaggeredGrid(smokeBox, GRID_DIM);
-	staggeredGrid.setGridVelocities(q, qdot);
-
-	// TODO: give initial velocities to MAC grid
 
 	//// TODO: DELETE. Testing if initialization of staggered grid points is correct
 	//Eigen::MatrixXd u, v, w, p;
