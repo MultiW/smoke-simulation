@@ -2,6 +2,7 @@
 
 #include <set>
 #include <algorithm>
+#include <random>
 
 void addToCol(Eigen::MatrixXd& matrix, int columnIndex, double value)
 {
@@ -64,4 +65,11 @@ void unflatten(Grid& grid, Eigen::VectorXd& vector) {
 			}
 		}
 	}
+}
+
+double getRand(double min, double max)
+{
+	std::uniform_real_distribution<double> unif(min, max);
+	std::default_random_engine re;
+	return unif(re);
 }

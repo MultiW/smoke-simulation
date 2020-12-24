@@ -47,6 +47,7 @@ private:
 	double getCellSize();
 
 	void createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);
+	void initializeVelocities();
 
 	// External forces
 	void applyBuoyancyForce();
@@ -61,4 +62,12 @@ private:
 	void updateGridVelocities();
 
 	void computePressure(Eigen::VectorXd p);
+
+	// Boundaries to simulation
+	double getMinX();
+	double getMinY();
+	double getMinZ();
+	double getMaxX();
+	double getMaxY();
+	double getMaxZ();
 };

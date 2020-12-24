@@ -43,6 +43,8 @@ StaggeredGrid::StaggeredGrid(
 	this->tempGrid.setWorldPoints(cellCenters, this->getCellSize());
 	this->densityGrid.setWorldPoints(cellCenters, this->getCellSize());
 
+	this->initializeVelocities();
+
 	// Set default temperature and density
 	this->tempGrid.setConstantValue(FLUID_TEMP);
 	this->densityGrid.setConstantValue(FLUID_DENSITY);
@@ -98,9 +100,9 @@ void StaggeredGrid::getGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen:
 	convertGridToPoints(this->pGrid, p);
 }
 
-// =====================================
-// === Setting world point locations ===
-// =====================================
+// ======================
+// === Initialization ===
+// ======================
 
 void StaggeredGrid::createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p)
 {
@@ -130,6 +132,14 @@ void StaggeredGrid::createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eig
 	addToCol(p, 0, cellHalfLen);
 	addToCol(p, 1, cellHalfLen);
 	addToCol(p, 2, cellHalfLen);
+}
+
+
+void StaggeredGrid::initializeVelocities()
+{
+	this->uGrid.setConstantValue(0);
+	this->vGrid.setConstantValue(getRand(0, 1));
+	this->wGrid.setConstantValue(0);
 }
 
 // ====================================
@@ -381,4 +391,36 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p)
 	p = cg.solve(f);
 }
 
+// =================================
+// === Simulation box boundaries ===
+// =================================
+double StaggeredGrid::getMinX()
+{
+	return this->box.corner(this->box.BottomLeftFloor).x();
+}
+
+double StaggeredGrid::getMinY()
+{
+	return this->box.corner(this->box.BottomLeftFloor).y();
+}
+
+double StaggeredGrid::getMinZ()
+{
+	return this->box.corner(this->box.BottomLeftFloor).z();
+}
+
+double StaggeredGrid::getMaxX()
+{
+	return this->box.corner(this->box.TopRightCeil).x();
+}
+
+double StaggeredGrid::getMaxY()
+{
+	return this->box.corner(this->box.TopRightCeil).y();
+}
+
+double StaggeredGrid::getMaxZ()
+{
+	return this->box.corner(this->box.TopRightCeil).z();
+}
 
