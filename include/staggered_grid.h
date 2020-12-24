@@ -9,7 +9,8 @@ class StaggeredGrid {
 
 	// Dimension and location of grid in world-space
 	Eigen::AlignedBox3d box;
-
+public:
+	// TODO: move back to private when done
 	// Velocity grids
 	Grid uGrid;
 	Grid vGrid;
@@ -21,7 +22,8 @@ class StaggeredGrid {
 	// Smoke-specific components
 	Grid tempGrid; // temperature
 	Grid densityGrid; // fluid density
-public:
+
+
 	StaggeredGrid();
 	StaggeredGrid(const Eigen::AlignedBox3d& box, const Eigen::Vector3i& dim);
 

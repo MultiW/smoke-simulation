@@ -27,7 +27,9 @@ StaggeredGrid::StaggeredGrid(
 	uGrid(Grid(dim(0), dim(1) - 1.0, dim(2) - 1.0)),
 	vGrid(Grid(dim(0)- 1.0, dim(1), dim(2) - 1.0)),
 	wGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2))),
-	pGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0))
+	pGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
+	tempGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
+	densityGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0))
 {
 	// Generate grids
 	Eigen::MatrixXd u, v, w, cellCenters;
@@ -184,8 +186,8 @@ void StaggeredGrid::advectCenterValues(Grid& grid)
 			{
 				// Get location of the (imaginary) particle that will reach this center position after timestep dt
 				velocityAtCenter(0) = (this->uGrid(i, j, k).value + this->uGrid(i + 1, j, k).value) / 2.0;
-				velocityAtCenter(1) = (this->uGrid(i, j, k).value + this->uGrid(i, j + 1, k).value) / 2.0;
-				velocityAtCenter(2) = (this->uGrid(i, j, k).value + this->uGrid(i, j, k + 1).value) / 2.0;
+				velocityAtCenter(1) = (this->vGrid(i, j, k).value + this->vGrid(i, j + 1, k).value) / 2.0;
+				velocityAtCenter(2) = (this->wGrid(i, j, k).value + this->wGrid(i, j, k + 1).value) / 2.0;
 				prevPosition = grid(i, j, k).worldPoint - dt * velocityAtCenter;
 
 				// This center position's temperature at the next timestep will be that imaginary particle's temperature

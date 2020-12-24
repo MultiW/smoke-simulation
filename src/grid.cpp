@@ -62,18 +62,18 @@ double Grid::interpolatePoint(const Eigen::RowVector3d point)
 	yi = getBinIdx(this->_y, this->cellSize, point(1));
 	zi = getBinIdx(this->_z, this->cellSize, point(2));
 
-	x = point(0) - this->grid(xi, yi, zi).worldPoint(0);
-	y = point(1) - this->grid(xi, yi, zi).worldPoint(1);
-	z = point(2) - this->grid(xi, yi, zi).worldPoint(2);
+	x = (point(0) - this->grid(xi, yi, zi).worldPoint(0)) / this->cellSize;
+	y = (point(1) - this->grid(xi, yi, zi).worldPoint(1)) / this->cellSize;
+	z = (point(2) - this->grid(xi, yi, zi).worldPoint(2)) / this->cellSize;
 
 	// trilinear interpolation from all corners of current cell
-	return this->safeGet(xi, yi, zi) * (this->cellSize - x) * (this->cellSize - y) * (this->cellSize - z)
-		+ this->safeGet(xi + 1, yi, zi) * x * (this->cellSize - y) * (this->cellSize - z)
-		+ this->safeGet(xi, yi + 1, zi) * (this->cellSize - x) * y * (this->cellSize - z)
-		+ this->safeGet(xi, yi, zi + 1) * (this->cellSize - x) * (this->cellSize - y) * z
-		+ this->safeGet(xi + 1, yi, zi + 1) * x * (this->cellSize - y) * z
-		+ this->safeGet(xi, yi + 1, zi + 1) * (this->cellSize - x) * y * z
-		+ this->safeGet(xi + 1, yi + 1, zi) * x * y * (this->cellSize - z)
+	return this->safeGet(xi, yi, zi) * (1 - x) * (1 - y) * (1 - z)
+		+ this->safeGet(xi + 1, yi, zi) * x * (1 - y) * (1 - z)
+		+ this->safeGet(xi, yi + 1, zi) * (1 - x) * y * (1 - z)
+		+ this->safeGet(xi, yi, zi + 1) * (1 - x) * (1 - y) * z
+		+ this->safeGet(xi + 1, yi, zi + 1) * x * (1 - y) * z
+		+ this->safeGet(xi, yi + 1, zi + 1) * (1 - x) * y * z
+		+ this->safeGet(xi + 1, yi + 1, zi) * x * y * (1 - z)
 		+ this->safeGet(xi + 1, yi + 1, zi + 1) * x * y * z;
 }
 
@@ -101,18 +101,18 @@ void Grid::setGridValues(const Eigen::MatrixXd& q, const Eigen::VectorXd qdotCol
 		yi = getBinIdx(this->_y, this->cellSize, point(1));
 		zi = getBinIdx(this->_z, this->cellSize, point(2));
 
-		x = point(0) - this->grid(xi, yi, zi).worldPoint(0);
-		y = point(1) - this->grid(xi, yi, zi).worldPoint(1);
-		z = point(2) - this->grid(xi, yi, zi).worldPoint(2);
+		x = point(0) - this->grid(xi, yi, zi).worldPoint(0) / this->cellSize;
+		y = point(1) - this->grid(xi, yi, zi).worldPoint(1) / this->cellSize;
+		z = point(2) - this->grid(xi, yi, zi).worldPoint(2) / this->cellSize;
 
 		// update current cell's values with current point. Use weights from trilinear interpolation
-		this->safeAdd(xi, yi, zi, qdotCol(i) * (this->cellSize - x) * (this->cellSize - y) * (this->cellSize - z));
-		this->safeAdd(xi + 1, yi, zi, qdotCol(i) * x * (this->cellSize - y) * (this->cellSize - z));
-		this->safeAdd(xi, yi + 1, zi, qdotCol(i) * (this->cellSize - x) * y * (this->cellSize - z));
-		this->safeAdd(xi, yi, zi + 1, qdotCol(i) * (this->cellSize - x) * (this->cellSize - y) * z);
-		this->safeAdd(xi + 1, yi, zi + 1, qdotCol(i) * x * (this->cellSize - y) * z);
-		this->safeAdd(xi, yi + 1, zi + 1, qdotCol(i) * (this->cellSize - x) * y * z);
-		this->safeAdd(xi + 1, yi + 1, zi, qdotCol(i) * x * y * (this->cellSize - z));
+		this->safeAdd(xi, yi, zi, qdotCol(i) * (1 - x) * (1 - y) * (1 - z));
+		this->safeAdd(xi + 1, yi, zi, qdotCol(i) * x * (1 - y) * (1 - z));
+		this->safeAdd(xi, yi + 1, zi, qdotCol(i) * (1 - x) * y * (1 - z));
+		this->safeAdd(xi, yi, zi + 1, qdotCol(i) * (1 - x) * (1 - y) * z);
+		this->safeAdd(xi + 1, yi, zi + 1, qdotCol(i) * x * (1 - y) * z);
+		this->safeAdd(xi, yi + 1, zi + 1, qdotCol(i) * (1 - x) * y * z);
+		this->safeAdd(xi + 1, yi + 1, zi, qdotCol(i) * x * y * (1 - z));
 		this->safeAdd(xi + 1, yi + 1, zi + 1, qdotCol(i) * x * y * z);
 	}
 }
@@ -171,6 +171,23 @@ std::vector<double> const& Grid::y()
 std::vector<double> const& Grid::z() 
 {
 	return this->_z;
+}
+
+
+void Grid::dumpValues()
+{
+	printf("\n");
+	for (int i = 0; i < this->size(0); i++)
+	{
+		for (int j = 0; j < this->size(1); j++)
+		{
+			for (int k = 0; k < this->size(2); k++)
+			{
+				printf("%f  ", this->grid(i, j, k).value);
+			}
+		}
+	}
+	printf("\n");
 }
 
 // ================================

@@ -60,7 +60,7 @@ inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::
 	igl::grid(SMOKE_DIM, q);
 
 	Eigen::AlignedBox3d smokeBounds;
-	smokeBounds.extend(Eigen::Vector3d(5, 50, 5));
+	smokeBounds.extend(Eigen::Vector3d(5, BOX_DIM(1) - 20, 5));
 	smokeBounds.extend(Eigen::Vector3d(BOX_DIM(0) - 5, BOX_DIM(1) - 5, BOX_DIM(2) - 5));
 	transformVertices(q, smokeBounds);
 }
@@ -104,13 +104,13 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::M
 	staggeredGrid = StaggeredGrid(smokeBox, GRID_DIM);
 	staggeredGrid.setGridVelocities(q, qdot);
 
-	// TODO: DELETE. Testing if initialization of staggered grid points is correct
-	Eigen::MatrixXd u, v, w, p;
-	staggeredGrid.getGridPoints(u, v, w, p);
-	Visualize::addPointsToScene(u, yellow);
-	Visualize::addPointsToScene(v, orange);
-	Visualize::addPointsToScene(w, green);
-	Visualize::addPointsToScene(p, red);
+	//// TODO: DELETE. Testing if initialization of staggered grid points is correct
+	//Eigen::MatrixXd u, v, w, p;
+	//staggeredGrid.getGridPoints(u, v, w, p);
+	//Visualize::addPointsToScene(u, yellow);
+	//Visualize::addPointsToScene(v, orange);
+	//Visualize::addPointsToScene(w, green);
+	//Visualize::addPointsToScene(p, red);
 }
 
 inline void draw(Eigen::Ref<const Eigen::MatrixXd> q, Eigen::Ref<const Eigen::MatrixXd> qdot, double t)
