@@ -210,7 +210,7 @@ void StaggeredGrid::advectPosition(Eigen::MatrixXd &q) {
 
 		vel = vel * dt;
 		this->enforceBoundaries(vel, point);
-
+		q.row(i) = point + vel;
 		//qnext.row(i) = point + vel*dt;
 
 	}

@@ -87,7 +87,8 @@ int getBinIdx(std::vector<double> binBorders, double binSize, double currLocatio
 	double min = binBorders.front();
 	double max = binBorders.back();
 
-	if (currLocation < min) {
+
+	if (currLocation <= min) {
 		return 0;
 	}
 	else if (currLocation >= max) {
@@ -101,8 +102,7 @@ int getBinIdx(std::vector<double> binBorders, double binSize, double currLocatio
 			return i - 1;
 		}
 	}
-
-	printf("Error in getBinIdx(): could not find bin index.");
+	printf("Error in getBinIdx(): could not find bin index.\n");
 	throw;
 }
 
