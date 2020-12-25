@@ -38,15 +38,21 @@ int boxId;
 inline void simulate(Eigen::MatrixXd& q, double t)
 {
 	// 1. update velocities
+	printf("here1?\n");
 	staggeredGrid.advectVelocities();
+	printf("here2?\n");
 	staggeredGrid.applyExternalForces();
+	printf("here3?\n");
 	staggeredGrid.applyPressureProjections();
+	printf("here4?\n");
 
 	// 2. advect temperature and density
 	staggeredGrid.updateTemperatureAndDensity();
+	printf("here5?\n");
 
 	// 3. advect particles
 	staggeredGrid.advectPosition(q);
+	printf("here6?\n");
 }
 
 inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::MatrixXd& q, Eigen::AlignedBox3d& boundary)

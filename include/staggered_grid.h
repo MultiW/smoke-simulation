@@ -27,8 +27,6 @@ public:
 	StaggeredGrid();
 	StaggeredGrid(const Eigen::AlignedBox3d& box, const Eigen::Vector3i& dim);
 
-	void setGridVelocities(const Eigen::MatrixXd& q, const Eigen::MatrixXd& qdot);
-
 	// Advection
 	void advectVelocities();
 	void advectPosition(Eigen::MatrixXd &q);

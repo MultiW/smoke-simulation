@@ -31,13 +31,6 @@ public:
 	*/
 	double interpolatePoint(const Eigen::RowVector3d point);
 
-	/*
-	* Set the grid values based on the weighted sum of the given points' values.
-	* - Use trilinear interpolation weights for each point
-	* Set to zero if no points are inside a cube
-	*/
-	void setGridValues(const Eigen::MatrixXd& q, const Eigen::VectorXd qdotCol);
-
 	// sorted x, y, z values of the grid
 	std::vector<double> const& x();
 	std::vector<double> const& y();

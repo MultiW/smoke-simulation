@@ -53,14 +53,6 @@ StaggeredGrid::StaggeredGrid(
 // ======================
 // === Public classes ===
 // ======================
-
-void StaggeredGrid::setGridVelocities(const Eigen::MatrixXd& q, const Eigen::MatrixXd& qdot)
-{
-	this->uGrid.setGridValues(q, qdot.col(0));
-	this->vGrid.setGridValues(q, qdot.col(1));
-	this->wGrid.setGridValues(q, qdot.col(2));
-}
-
 void StaggeredGrid::advectVelocities()
 {
 	advectVelocity(this->uGrid);
@@ -140,7 +132,7 @@ void StaggeredGrid::createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eig
 void StaggeredGrid::initializeVelocities()
 {
 	this->uGrid.setConstantValue(0);
-	this->vGrid.setConstantValue(getRand(0, 1));
+	this->vGrid.setConstantValue(-getRand(0, 1));
 	this->wGrid.setConstantValue(0);
 }
 
