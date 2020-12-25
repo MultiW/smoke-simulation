@@ -18,7 +18,7 @@ void draw_main_viewer_menu()
 	Visualize::menu.draw_viewer_menu();
 }
 
-void Visualize::setup(const Eigen::MatrixXd& q, const Eigen::MatrixXd& qdot)
+void Visualize::setup(const Eigen::MatrixXd& q)
 {
 	// Set up menu
 	g_viewer.plugins.push_back(&menu);

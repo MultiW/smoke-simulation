@@ -6,7 +6,6 @@
 #include "grid_util.h"
 #include "util.h"
 #include "external_forces.h"
-#include "advection.h"
 #include "staggered_grid.h"
 #include "constants.h"
 
@@ -36,7 +35,7 @@ int smokeId;
 int boxId;
 
 // Update location and velocity of smoke particles
-inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double t)
+inline void simulate(Eigen::MatrixXd& q, double t)
 {
 	// 1. update velocities
 	staggeredGrid.advectVelocities();
@@ -47,13 +46,7 @@ inline void simulate(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot, double t)
 	staggeredGrid.updateTemperatureAndDensity();
 
 	// 3. advect particles
-	// TODO: move to staggered_grid
-	//  - 1. find v^t: current velocity of particle (using Grid.interpolate)
-	//  - 2. find v^t+1: find particle's next position (+ dt * v^t), then find velocity at that position (using Grid.interpolate)
-	//  - 3. average v^t and v^t+1
-	//  - 4. compute next position of particle using: + dt * v_avg
-	//  - Whenever a new position is computed: clip position of particle to the grid
-	advection(q, qdot, dt);
+	staggeredGrid.advectPosition(q);
 }
 
 inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::MatrixXd& q, Eigen::AlignedBox3d& boundary)
@@ -73,25 +66,8 @@ inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::
 	transformVertices(q, smokeBounds);
 }
 
-inline void initParticleVelocity(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
-{
-	// TODO: how should velocity be initialized
-	qdot.resize(q.rows(), q.cols());
-	qdot.setZero();
-	qdot.col(1).setConstant(-0.01);
-	//std::srand((unsigned) std::time(NULL));
-	//for (int j = 0; j < qdot.cols(); j++)
-	//{
-	//	for (int i = 0; i < qdot.rows(); i++)
-	//	{
-	//		// iterate in column-major order, the default order for Eigen matrix
-	//		qdot(i, j) = (double) std::rand() / RAND_MAX * 100.0;
-	//	}
-	//}
-}
-
 // Must be called first
-inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::MatrixXd& qdot)
+inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q)
 {
 	// Define boundaries of box
 	Eigen::AlignedBox3d smokeBox;
@@ -118,7 +94,7 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q, Eigen::M
 	//Visualize::addPointsToScene(p, red);
 }
 
-inline void draw(Eigen::Ref<const Eigen::MatrixXd> q, Eigen::Ref<const Eigen::MatrixXd> qdot, double t)
+inline void draw(Eigen::Ref<const Eigen::MatrixXd> q, double t)
 {
 	Visualize::updatePoints(smokeId, q, white);
 }
