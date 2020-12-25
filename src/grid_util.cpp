@@ -7,6 +7,8 @@
 #include <igl/signed_distance.h>
 #include <igl/rotation_matrix_from_directions.h>
 
+#include <stdio.h>
+
 const static int GRID_LEN = 50; // number of voxels on each side of the grid
 
 void createAlignedBox(const Eigen::MatrixXd &V, Eigen::AlignedBox3d &box) {
@@ -82,8 +84,9 @@ void convertGridToPoints(Grid grid, Eigen::MatrixXd& points)
 // binBorders - sorted array of boundaries of all bins
 int getBinIdx(std::vector<double> binBorders, double binSize, double currLocation)
 {
-	int min = binBorders.front();
-	int max = binBorders.back();
+	double min = binBorders.front();
+	double max = binBorders.back();
+
 	assert(currLocation >= min && currLocation <= max);
 
 	for (int i = 1; i < binBorders.size(); i++)

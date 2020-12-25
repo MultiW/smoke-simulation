@@ -3,6 +3,7 @@
 #include "util.h"
 
 #include <stdio.h>
+#include <iostream>
 
 Grid::Grid() {}
 

@@ -23,6 +23,7 @@ void addRows(Eigen::MatrixXd& matrix, const Eigen::MatrixXd& rows)
 void colToSortedVector(const Eigen::VectorXd& column, std::vector<double>& sortedVector)
 {
 	std::set<double> uniqueValues(column.data(), column.data() + column.rows());
+	sortedVector.resize(uniqueValues.size());
 	sortedVector.assign(uniqueValues.begin(), uniqueValues.end());
 	std::sort(sortedVector.begin(), sortedVector.end());
 }
