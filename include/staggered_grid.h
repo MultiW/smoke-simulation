@@ -43,7 +43,7 @@ public:
 
 	void advectPosition(Eigen::MatrixXd &q);
 
-	void enforceBoundaries(Eigen::RowVector3d &newPoint, Eigen::RowVector3d &oldPoint);
+	void enforceBoundaries(Eigen::RowVector3d &vel, Eigen::RowVector3d &point);
 
 	void getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVector3d &point);
 
