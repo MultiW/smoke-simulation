@@ -77,14 +77,6 @@ double Grid::interpolatePoint(const Eigen::RowVector3d point)
 		+ this->safeGet(xi + 1, yi + 1, zi + 1) * x * y * z;
 }
 
-void Grid::interpolatePoints(const Eigen::MatrixXd& q, Eigen::Ref<Eigen::VectorXd> qdotCol)
-{
-	for (int i = 0; i < q.rows(); i++)
-	{
-		qdotCol(i) = this->interpolatePoint(q.row(i));
-	}
-}
-
 void Grid::setGridValues(const Eigen::MatrixXd& q, const Eigen::VectorXd qdotCol)
 {
 	this->clearValues();

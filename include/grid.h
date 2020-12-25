@@ -30,7 +30,6 @@ public:
 	* Get the trilinear interpolation value of the point from the enclosing cube's values.
 	*/
 	double interpolatePoint(const Eigen::RowVector3d point);
-	void interpolatePoints(const Eigen::MatrixXd& q, Eigen::Ref<Eigen::VectorXd> qdotCol);
 
 	/*
 	* Set the grid values based on the weighted sum of the given points' values.
