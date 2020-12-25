@@ -20,6 +20,8 @@ public:
 
 	void setConstantValue(double value);
 
+	void setRandomValues(double min, double max);
+
 	/*
 	* 3D grid of values flattened to a 1D array
 	* Assumption: dimensions of given vector matches this grid's dimensions

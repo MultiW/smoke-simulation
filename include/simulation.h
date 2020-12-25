@@ -8,6 +8,7 @@
 #include "external_forces.h"
 #include "staggered_grid.h"
 #include "constants.h"
+#include "util.h"
 
 #include <igl/grid.h>
 
@@ -57,13 +58,15 @@ inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::
 	transformVertices(boxV, boundary);
 
 	// Create smoke particles inside box
-	// TODO: perhaps randomly create N particles within a boundary
-	igl::grid(SMOKE_DIM, q);
-
-	Eigen::AlignedBox3d smokeBounds;
-	smokeBounds.extend(Eigen::Vector3d(5, BOX_DIM(1) - 10, 5));
-	smokeBounds.extend(Eigen::Vector3d(BOX_DIM(0) - 5, BOX_DIM(1) - 5, BOX_DIM(2) - 5));
-	transformVertices(q, smokeBounds);
+	q.resize(PARTICLE_COUNT, 3);
+	Eigen::Vector3d bottomLeftFloor = SMOKE_BOUNDS.corner(Eigen::AlignedBox3d::BottomLeftFloor);
+	Eigen::Vector3d topRightCeil = SMOKE_BOUNDS.corner(Eigen::AlignedBox3d::TopRightCeil);
+	for (int i = 0; i < PARTICLE_COUNT; i++)
+	{
+		q(i, 0) = getRand(bottomLeftFloor(0), topRightCeil(0));
+		q(i, 1) = getRand(bottomLeftFloor(1), topRightCeil(1));
+		q(i, 2) = getRand(bottomLeftFloor(2), topRightCeil(2));
+	}
 }
 
 // Must be called first
@@ -85,13 +88,13 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q)
 
 	staggeredGrid = StaggeredGrid(smokeBox, GRID_DIM);
 
-	//// TODO: DELETE. Testing if initialization of staggered grid points is correct
-	Eigen::MatrixXd u, v, w, p;
-	staggeredGrid.getGridPoints(u, v, w, p);
-	Visualize::addPointsToScene(u, yellow);
-	Visualize::addPointsToScene(v, orange);
-	Visualize::addPointsToScene(w, green);
-	Visualize::addPointsToScene(p, red);
+	////// TODO: DELETE. Testing if initialization of staggered grid points is correct
+	//Eigen::MatrixXd u, v, w, p;
+	//staggeredGrid.getGridPoints(u, v, w, p);
+	//Visualize::addPointsToScene(u, yellow);
+	//Visualize::addPointsToScene(v, orange);
+	//Visualize::addPointsToScene(w, green);
+	//Visualize::addPointsToScene(p, red);
 }
 
 inline void draw(Eigen::Ref<const Eigen::MatrixXd> q, double t)

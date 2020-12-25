@@ -16,6 +16,8 @@ const Eigen::Vector3i GRID_DIM(5, 3, 3);
 
 // smoke particle count
 const Eigen::Vector3d SMOKE_DIM(4, 2, 2);
+const int PARTICLE_COUNT = 10;
+const Eigen::AlignedBox3d SMOKE_BOUNDS(Eigen::Vector3d(5, 5, 5), Eigen::Vector3d(10, 10, 10));
 
 // buoyancy force variables
 const double FLUID_DENSITY = 2.0;
@@ -24,7 +26,7 @@ const double AIR_DENSITY = 1.0;
 const double FLUID_TEMP = 1;
 const double AMBIENT_TEMP = 0;
 
-const double ALPHA = 0.08;
-const double BETA = 0.97;
+const double ALPHA = 0.08; // how much particles sink
+const double BETA = 0.97; // how much particles float
 
 #endif // !CONSTANTS_H

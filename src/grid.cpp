@@ -114,6 +114,21 @@ void Grid::setConstantValue(double value)
 	}
 }
 
+
+void Grid::setRandomValues(double min, double max)
+{
+	for (int i = 0; i < this->size(0); i++)
+	{
+		for (int j = 0; j < this->size(1); j++)
+		{
+			for (int k = 0; k < this->size(2); k++)
+			{
+				this->grid(i, j, k).value = getRand(min, max);;
+			}
+		}
+	}
+}
+
 std::vector<double> const& Grid::x()
 {
 	return this->_x;

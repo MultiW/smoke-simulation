@@ -71,6 +71,7 @@ void unflatten(Grid& grid, Eigen::VectorXd& vector) {
 double getRand(double min, double max)
 {
 	std::uniform_real_distribution<double> unif(min, max);
-	std::default_random_engine re;
-	return unif(re);
+	std::random_device rd;
+	std::default_random_engine generator(rd());
+	return unif(generator);
 }

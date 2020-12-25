@@ -131,9 +131,9 @@ void StaggeredGrid::createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eig
 
 void StaggeredGrid::initializeVelocities()
 {
-	this->uGrid.setConstantValue(0);
-	this->vGrid.setConstantValue(-getRand(0, 1));
-	this->wGrid.setConstantValue(0);
+	this->uGrid.setRandomValues(0, this->getCellSize());
+	this->vGrid.setRandomValues(-this->getCellSize(), this->getCellSize());
+	this->wGrid.setRandomValues(-this->getCellSize(), this->getCellSize());
 }
 
 // =================
