@@ -207,6 +207,47 @@ void StaggeredGrid::advectVelocity(Grid& grid)
 	}
 }
 
+void StaggeredGrid::advectPosition(Eigen::MatrixXd &q) {
+	//Eigen::MatrixXd qnext;
+	//qnext.resize(q.rows(), q.cols());
+
+	for (int i = 0; i < q.rows(); i++) {
+		Eigen::RowVector3d point = q.row(i);
+		Eigen::RowVector3d vel;
+		this->getPointVelocity(vel, point);
+
+		vel = vel * dt;
+		this->enforceBoundaries(vel, point);
+
+		//qnext.row(i) = point + vel*dt;
+
+	}
+}
+
+void StaggeredGrid::getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVector3d &point) {
+	velocity(0) = uGrid.interpolatePoint(point);
+	velocity(1) = vGrid.interpolatePoint(point);
+	velocity(2) = wGrid.interpolatePoint(point);
+}
+
+void StaggeredGrid::enforceBoundaries(Eigen::RowVector3d &vel, Eigen::RowVector3d &point) {
+	Eigen::RowVector3d mins;
+	mins << this->getMinX(), this->getMinY(), this->getMinZ();
+	Eigen::RowVector3d maxs;
+	maxs << this->getMaxX(), this->getMaxY(), this->getMaxZ();
+	Eigen::RowVector3d newPoint = vel + point;
+	for (int i = 0; i < 3; i++) {
+		if (newPoint[0] < mins[0]) {
+			double dist = mins[0] - point[0];
+			vel = vel / vel[i] * dist;
+		}
+		else if (newPoint[0] > maxs[1]) {
+			double dist = maxs[0] - point[0];
+			vel = vel / vel[i] * dist;
+		}
+	}
+}
+
 // =============================
 // === Apply external forces ===
 // =============================
@@ -445,49 +486,4 @@ double StaggeredGrid::getMaxY()
 double StaggeredGrid::getMaxZ()
 {
 	return this->box.corner(this->box.TopRightCeil).z();
-}
-void StaggeredGrid::advectPosition(Eigen::MatrixXd &q) {
-	//Eigen::MatrixXd qnext;
-	//qnext.resize(q.rows(), q.cols());
-
-
-
-	for (int i = 0; i < q.rows(); i++) {
-		Eigen::RowVector3d point = q.row(i);
-		Eigen::RowVector3d vel;
-		this->getPointVelocity(vel, point);
-
-		vel = vel * dt;
-		this->enforceBoundaries(vel, point);
-
-		//qnext.row(i) = point + vel*dt;
-
-	}
-}
-
-void StaggeredGrid::getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVector3d &point) {
-	velocity(0) = uGrid.interpolatePoint(point);
-	velocity(1) = vGrid.interpolatePoint(point);
-	velocity(2) = wGrid.interpolatePoint(point);
-}
-
-void StaggeredGrid::enforceBoundaries(Eigen::RowVector3d &vel, Eigen::RowVector3d &point) {
-
-
-
-	Eigen::RowVector3d mins;
-	mins << this->getMinX(), this->getMinY(), this->getMinZ();
-	Eigen::RowVector3d maxs;
-	maxs << this->getMaxX(), this->getMaxY(), this->getMaxZ();
-	Eigen::RowVector3d newPoint = vel + point;
-	for (int i = 0; i < 3; i++) {
-		if (newPoint[0] < mins[0]) {
-			double dist = mins[0] - point[0];
-			vel = vel / vel[i] * dist;
-		}
-		else if (newPoint[0] > maxs[1]) {
-			double dist = maxs[0] - point[0];
-			vel = vel / vel[i] * dist;
-		}
-	}
 }
