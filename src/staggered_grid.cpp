@@ -229,12 +229,15 @@ void StaggeredGrid::enforceBoundaries(Eigen::RowVector3d &vel, Eigen::RowVector3
 	maxs << this->getMaxX(), this->getMaxY(), this->getMaxZ();
 	Eigen::RowVector3d newPoint = vel + point;
 	for (int i = 0; i < 3; i++) {
-		if (newPoint[0] < mins[0]) {
-			double dist = mins[0] - point[0];
+		if (vel[i] == 0) {
+			continue;
+		}
+		if (newPoint[i] < mins[i]) {
+			double dist = mins[i] - point[i];
 			vel = vel / vel[i] * dist;
 		}
-		else if (newPoint[0] > maxs[1]) {
-			double dist = maxs[0] - point[0];
+		else if (newPoint[i] > maxs[1]) {
+			double dist = maxs[i] - point[i];
 			vel = vel / vel[i] * dist;
 		}
 	}
