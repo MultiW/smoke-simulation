@@ -88,10 +88,10 @@ int getBinIdx(std::vector<double> binBorders, double binSize, double currLocatio
 	double max = binBorders.back();
 
 	if (currLocation < min) {
-		return min;
+		return 0;
 	}
 	else if (currLocation >= max) {
-		return max - 1;
+		return binBorders.size() - 1;
 	}
 
 	for (int i = 1; i < binBorders.size(); i++)
