@@ -7,15 +7,15 @@
 const double dt = 0.001;
 
 // dimensions of the smoke box
-const Eigen::Vector3i BOX_DIM(200, 100, 100);
+const Eigen::Vector3i BOX_DIM(40, 20, 20);
 
 // dimensions of staggered grid to compute pressure
 // - NOTE: GRID_DIM - 1 (along all dimensions) must have the same 
 // - propertions as BOX_DIM
-const Eigen::Vector3i GRID_DIM(21, 11, 11);
+const Eigen::Vector3i GRID_DIM(5, 3, 3);
 
 // smoke particle count
-const Eigen::Vector3d SMOKE_DIM(20, 20, 20);
+const Eigen::Vector3d SMOKE_DIM(4, 2, 2);
 
 // buoyancy force variables
 const double FLUID_DENSITY = 2.0;

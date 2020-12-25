@@ -38,21 +38,15 @@ int boxId;
 inline void simulate(Eigen::MatrixXd& q, double t)
 {
 	// 1. update velocities
-	printf("here1?\n");
 	staggeredGrid.advectVelocities();
-	printf("here2?\n");
 	staggeredGrid.applyExternalForces();
-	printf("here3?\n");
 	staggeredGrid.applyPressureProjections();
-	printf("here4?\n");
 
 	// 2. advect temperature and density
 	staggeredGrid.updateTemperatureAndDensity();
-	printf("here5?\n");
 
 	// 3. advect particles
 	staggeredGrid.advectPosition(q);
-	printf("here6?\n");
 }
 
 inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::MatrixXd& q, Eigen::AlignedBox3d& boundary)
@@ -67,7 +61,7 @@ inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::
 	igl::grid(SMOKE_DIM, q);
 
 	Eigen::AlignedBox3d smokeBounds;
-	smokeBounds.extend(Eigen::Vector3d(5, BOX_DIM(1) - 20, 5));
+	smokeBounds.extend(Eigen::Vector3d(5, BOX_DIM(1) - 10, 5));
 	smokeBounds.extend(Eigen::Vector3d(BOX_DIM(0) - 5, BOX_DIM(1) - 5, BOX_DIM(2) - 5));
 	transformVertices(q, smokeBounds);
 }
@@ -92,12 +86,12 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q)
 	staggeredGrid = StaggeredGrid(smokeBox, GRID_DIM);
 
 	//// TODO: DELETE. Testing if initialization of staggered grid points is correct
-	//Eigen::MatrixXd u, v, w, p;
-	//staggeredGrid.getGridPoints(u, v, w, p);
-	//Visualize::addPointsToScene(u, yellow);
-	//Visualize::addPointsToScene(v, orange);
-	//Visualize::addPointsToScene(w, green);
-	//Visualize::addPointsToScene(p, red);
+	Eigen::MatrixXd u, v, w, p;
+	staggeredGrid.getGridPoints(u, v, w, p);
+	Visualize::addPointsToScene(u, yellow);
+	Visualize::addPointsToScene(v, orange);
+	Visualize::addPointsToScene(w, green);
+	Visualize::addPointsToScene(p, red);
 }
 
 inline void draw(Eigen::Ref<const Eigen::MatrixXd> q, double t)
