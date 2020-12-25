@@ -15,7 +15,6 @@ const Eigen::Vector3i BOX_DIM(40, 20, 20);
 const Eigen::Vector3i GRID_DIM(5, 3, 3);
 
 // smoke particle count
-const Eigen::Vector3d SMOKE_DIM(4, 2, 2);
 const int PARTICLE_COUNT = 10;
 const Eigen::AlignedBox3d SMOKE_BOUNDS(Eigen::Vector3d(5, 5, 5), Eigen::Vector3d(10, 10, 10));
 
