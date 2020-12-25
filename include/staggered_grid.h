@@ -59,11 +59,9 @@ private:
 	void applyBuoyancyForce();
 	void applyVorticityConfinement();
 
-	/* Convert between particles velocities and grid velocities */
-	void getInterpolatedVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot);
-
 	/* Update the value (e.g. temperature) at the center cell based on the velocity field */
 	void advectCenterValues(Grid& grid);
+	void advectVelocity(Grid& grid);
 
 	void updateGridVelocities();
 

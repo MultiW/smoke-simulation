@@ -63,7 +63,9 @@ void StaggeredGrid::setGridVelocities(const Eigen::MatrixXd& q, const Eigen::Mat
 
 void StaggeredGrid::advectVelocities()
 {
-
+	advectVelocity(this->uGrid);
+	advectVelocity(this->vGrid);
+	advectVelocity(this->wGrid);
 }
 
 void StaggeredGrid::updateTemperatureAndDensity()
@@ -142,17 +144,9 @@ void StaggeredGrid::initializeVelocities()
 	this->wGrid.setConstantValue(0);
 }
 
-// ====================================
-// === Set grid and particle values ===
-// ====================================
-
-void StaggeredGrid::getInterpolatedVelocities(Eigen::MatrixXd& q, Eigen::MatrixXd& qdot) 
-{
-	this->uGrid.interpolatePoints(q, qdot.col(0));
-	this->vGrid.interpolatePoints(q, qdot.col(1));
-	this->wGrid.interpolatePoints(q, qdot.col(2));
-}
-
+// =================
+// === Advection ===
+// =================
 
 void StaggeredGrid::advectCenterValues(Grid& grid)
 {
@@ -174,11 +168,35 @@ void StaggeredGrid::advectCenterValues(Grid& grid)
 				velocityAtCenter(2) = (this->wGrid(i, j, k).value + this->wGrid(i, j, k + 1).value) / 2.0;
 				prevPosition = grid(i, j, k).worldPoint - dt * velocityAtCenter;
 
-				// This center position's temperature at the next timestep will be that imaginary particle's temperature
+				// The center position's temperature at the next timestep will be that imaginary particle's temperature
 				if (grid.isPointInBounds(prevPosition(0), prevPosition(1), prevPosition(2)))
 				{
 					grid(i, j, k).value = grid.interpolatePoint(prevPosition);
 				}
+			}
+		}
+	}
+}
+
+void StaggeredGrid::advectVelocity(Grid& grid)
+{
+	int d1 = grid.size(0);
+	int d2 = grid.size(1);
+	int d3 = grid.size(2);
+
+	Eigen::RowVector3d currPos;
+	Eigen::RowVector3d currVel;
+	Eigen::RowVector3d prevPos;
+	for (int i = 0; i < d1; i++)
+	{
+		for (int j = 0; j < d2; j++)
+		{
+			for (int k = 0; k < d3; k++)
+			{
+				currPos = grid(i, j, k).worldPoint.transpose();
+				this->getPointVelocity(currVel, currPos);
+				prevPos = currPos - dt * currVel;
+				grid(i, j, k).value = grid.interpolatePoint(prevPos);
 			}
 		}
 	}
