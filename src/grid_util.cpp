@@ -87,7 +87,12 @@ int getBinIdx(std::vector<double> binBorders, double binSize, double currLocatio
 	double min = binBorders.front();
 	double max = binBorders.back();
 
-	assert(currLocation >= min && currLocation <= max);
+	if (currLocation < min) {
+		return min;
+	}
+	else if (currLocation >= max) {
+		return max - 1;
+	}
 
 	for (int i = 1; i < binBorders.size(); i++)
 	{
