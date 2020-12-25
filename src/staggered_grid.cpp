@@ -169,6 +169,7 @@ void StaggeredGrid::advectCenterValues(Grid& grid)
 				prevPosition = grid(i, j, k).worldPoint - dt * velocityAtCenter;
 
 				// The center position's temperature at the next timestep will be that imaginary particle's temperature
+				// TODO: try removing this check, should be safe in theory
 				if (grid.isPointInBounds(prevPosition(0), prevPosition(1), prevPosition(2)))
 				{
 					grid(i, j, k).value = grid.interpolatePoint(prevPosition);
@@ -196,7 +197,11 @@ void StaggeredGrid::advectVelocity(Grid& grid)
 				currPos = grid(i, j, k).worldPoint.transpose();
 				this->getPointVelocity(currVel, currPos);
 				prevPos = currPos - dt * currVel;
-				grid(i, j, k).value = grid.interpolatePoint(prevPos);
+				// TODO: try removing this check, should be safe in theory
+				if (grid.isPointInBounds(prevPos(0), prevPos(1), prevPos(2)))
+				{
+					grid(i, j, k).value = grid.interpolatePoint(prevPos);
+				}
 			}
 		}
 	}
