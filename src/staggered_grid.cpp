@@ -140,6 +140,16 @@ void StaggeredGrid::initializeVelocities()
 // === Advection ===
 // =================
 
+// Given i, j, k of the current cell, return the velocity at the center of the grid 
+// - Computed using faces of the surrounding cube
+// - Faces of the cube that are out of bounds are defaulted to 0
+void StaggeredGrid::getVelocityAtCenter(Eigen::Vector3d& velocityAtCenter, int i, int j, int k)
+{
+	velocityAtCenter(0) = (this->uGrid.safeGet(i, j, k) + this->uGrid.safeGet(i + 1, j, k)) / 2.0;
+	velocityAtCenter(1) = (this->vGrid.safeGet(i, j, k) + this->vGrid.safeGet(i, j + 1, k)) / 2.0;
+	velocityAtCenter(2) = (this->wGrid.safeGet(i, j, k) + this->wGrid.safeGet(i, j, k + 1)) / 2.0;
+}
+
 void StaggeredGrid::advectCenterValues(Grid& grid)
 {
 	int d1 = grid.size(0);
@@ -155,9 +165,7 @@ void StaggeredGrid::advectCenterValues(Grid& grid)
 			for (int k = 0; k < d3; k++) 
 			{
 				// Get location of the (imaginary) particle that will reach this center position after timestep dt
-				velocityAtCenter(0) = (this->uGrid(i, j, k).value + this->uGrid(i + 1, j, k).value) / 2.0;
-				velocityAtCenter(1) = (this->vGrid(i, j, k).value + this->vGrid(i, j + 1, k).value) / 2.0;
-				velocityAtCenter(2) = (this->wGrid(i, j, k).value + this->wGrid(i, j, k + 1).value) / 2.0;
+				this->getVelocityAtCenter(velocityAtCenter, i, j, k);
 				prevPosition = grid(i, j, k).worldPoint - dt * velocityAtCenter;
 
 				// The center position's temperature at the next timestep will be that imaginary particle's temperature
