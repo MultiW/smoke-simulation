@@ -79,7 +79,7 @@ private:
 	// Advection
 	void advectCenterValues(Grid& grid); // Update the value (e.g. temperature) at the center cell based on the velocity field
 	void advectVelocity(Grid& grid);
-	void enforceBoundaries(Eigen::RowVector3d &vel, Eigen::RowVector3d &point);
+	void enforceBoundaries(const Eigen::RowVector3d& point, Eigen::RowVector3d& nextPoint);
 	void getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVector3d &point);
 
 	// Pressure projection

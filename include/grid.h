@@ -22,6 +22,10 @@ public:
 
 	void setRandomValues(double min, double max);
 
+	void setYZPlane(int x, double value);
+	void setXZPlane(int y, double value);
+	void setXYPlane(int z, double value);
+
 	/*
 	* 3D grid of values flattened to a 1D array
 	* Assumption: dimensions of given vector matches this grid's dimensions

@@ -176,6 +176,45 @@ void Grid::dumpValues()
 	printf("\n");
 }
 
+// ====================================
+// === Set Values in Selected Plane ===
+// ====================================
+
+void Grid::setYZPlane(int x, double value)
+{
+	for (int j = 0; j < this->size(1); j++)
+	{
+		for (int k = 0; k < this->size(2); k++)
+		{
+			this->grid(x, j, k).value = value;
+		}
+	}
+}
+
+void Grid::setXZPlane(int y, double value)
+{
+	for (int i = 0; i < this->size(0); i++)
+	{
+		for (int k = 0; k < this->size(2); k++)
+		{
+			this->grid(i, y, k).value = value;
+		}
+	}
+
+}
+
+void Grid::setXYPlane(int z, double value)
+{
+	for (int i = 0; i < this->size(0); i++)
+	{
+		for (int j = 0; j < this->size(1); j++)
+		{
+			this->grid(i, j, z).value = value;
+		}
+	}
+}
+
+
 // ================================
 // === List3d Wrapper Functions ===
 // ================================

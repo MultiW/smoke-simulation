@@ -157,10 +157,18 @@ void StaggeredGrid::initializeVelocities()
 	//this->uGrid.setRandomValues(0, this->getCellSize());
 	//this->vGrid.setRandomValues(-this->getCellSize(), this->getCellSize());
 	//this->wGrid.setRandomValues(-this->getCellSize(), this->getCellSize());
-	double rand = 0.1;
-	this->vGrid.setRandomValues(-0, 0);
-	this->uGrid.setRandomValues(-rand, rand);
-	this->wGrid.setRandomValues(-rand, rand);
+	double rand = 1;
+	this->vGrid.setRandomValues(-rand, 0);
+	this->uGrid.setRandomValues(-rand, 0);
+	this->wGrid.setRandomValues(-rand, 0);
+
+	// set velocities to not shoot outside the grid
+	this->uGrid.setYZPlane(0, 0);
+	this->uGrid.setYZPlane(this->uGrid.size(0) - 1, 0);
+	this->vGrid.setXZPlane(0, 0);
+	this->vGrid.setXZPlane(this->vGrid.size(1) - 1, 0);
+	this->wGrid.setXYPlane(0, 0);
+	this->wGrid.setXYPlane(this->wGrid.size(2) - 1, 0);
 }
 
 // =================
@@ -237,11 +245,11 @@ void StaggeredGrid::advectVelocity(Grid& grid)
 void StaggeredGrid::advectPosition(Eigen::MatrixXd &q) {
 	for (int i = 0; i < q.rows(); i++) {
 		Eigen::RowVector3d point = q.row(i);
-		Eigen::RowVector3d vel;
+		Eigen::RowVector3d nextPoint, vel;
 		this->getPointVelocity(vel, point);
-		vel = vel * dt;
-		this->enforceBoundaries(vel, point);
-		q.row(i) = point + vel;
+		nextPoint = point + vel * dt;
+		this->enforceBoundaries(point, nextPoint);
+		q.row(i) = nextPoint;
 	}
 }
 
@@ -251,26 +259,34 @@ void StaggeredGrid::getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVec
 	velocity(2) = wGrid.interpolatePoint(point);
 }
 
-void StaggeredGrid::enforceBoundaries(Eigen::RowVector3d &vel, Eigen::RowVector3d &point) {
-	Eigen::RowVector3d mins;
+void StaggeredGrid::enforceBoundaries(const Eigen::RowVector3d &point, Eigen::RowVector3d &nextPoint) {
+	Eigen::RowVector3d mins, maxs;
 	mins << this->getMinX(), this->getMinY(), this->getMinZ();
-	Eigen::RowVector3d maxs;
 	maxs << this->getMaxX(), this->getMaxY(), this->getMaxZ();
-	Eigen::RowVector3d newPoint = vel + point;
-	for (int i = 0; i < 3; i++) {
-		if (vel[i] == 0) {
-			continue;
-		}
-		if (newPoint[i] < mins[i]) {
-			double dist = mins[i] - point[i];
-			vel = vel / vel[i] * dist;
-		}
-		else if (newPoint[i] > maxs[i]) {
-			double dist = maxs[i] - point[i];
-			vel = vel / vel[i] * dist;
 
+	Eigen::RowVector3d enclosedPoint = nextPoint;
+	Eigen::RowVector3d currDist;
+	double newDist, ratio;
+	for (int i = 0; i < 3; i++) {
+		if (enclosedPoint(i) < mins(i)) 
+		{
+			currDist = enclosedPoint - point;
+			newDist = mins(i) - point(i); // new distance to boundary (that is less than the boundary)
+			ratio = newDist / currDist(i); // ratio to trim distance to within boundary
+			enclosedPoint = point + currDist * ratio;
+		}
+		else if (enclosedPoint(i) > maxs(i))
+		{
+			currDist = enclosedPoint - point;
+			newDist = maxs(i) - point(i);
+			ratio = newDist / currDist(i);
+			enclosedPoint = point + currDist * ratio;
 		}
 	}
+
+	nextPoint(0) = enclosedPoint(0);
+	nextPoint(1) = enclosedPoint(1);
+	nextPoint(2) = enclosedPoint(2);
 }
 
 // =============================
@@ -289,6 +305,7 @@ void StaggeredGrid::applyBuoyancyForce()
 	for (int i = 0; i < d1; i++)
 	{
 		for (int j = 0; j < d2; j++)
+		{
 			for (int k = 0; k < d3; k++)
 			{
 				// TODO: how to handle boundary cases? Only use one neighbor in those cases?
@@ -297,8 +314,7 @@ void StaggeredGrid::applyBuoyancyForce()
 				s = (this->densityGrid.safeGet(i, j, k) + this->densityGrid.safeGet(i, j - 1, k)) / 2;
 				T = (this->tempGrid.safeGet(i, j, k) + this->tempGrid.safeGet(i, j - 1, k)) / 2;
 				fBuoy = -ALPHA * s + BETA * (T - AMBIENT_TEMP);
-				this->vGrid(i, j, k).value += dt * fBuoy;		{
-
+				this->vGrid(i, j, k).value += dt * fBuoy;
 			}
 		}
 	}
