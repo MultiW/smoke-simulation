@@ -38,6 +38,9 @@ void alignToAxis(const Eigen::MatrixXd& V);
 
 void convertGridToPoints(Grid grid, Eigen::MatrixXd& points);
 
+// For a point inside the grid, return the bin index that the point belongs to
+// - Returns the smaller of the surrounding borders
 int getBinIdx(std::vector<double> binBorders, double binSize, double currLocation);
 
+// For a point in world-space on the border of the grid, return the index of the grid point
 int getPointIdx(std::vector<double>& sortedPoints, double interval, double currPoint, double epsilon);

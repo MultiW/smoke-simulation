@@ -144,6 +144,16 @@ std::vector<double> const& Grid::z()
 }
 
 
+// ============================
+// === Boundary and Indexes ===
+// ============================
+void Grid::getNearestGridPoint(Eigen::Vector3i& gridPoint, const Eigen::RowVector3d& point)
+{
+	gridPoint(0) = getBinIdx(this->_x, this->cellSize, point(0));
+	gridPoint(1) = getBinIdx(this->_y, this->cellSize, point(1));
+	gridPoint(2) = getBinIdx(this->_z, this->cellSize, point(2));
+}
+
 bool Grid::isInBounds(int i, int j, int k)
 {
 	return i >= 0 && i < this->size(0) &&
@@ -159,6 +169,9 @@ bool Grid::isPointInBounds(double x, double y, double z)
 		z >= this->_z.front() && z <= this->_z.back();
 }
 
+// =================
+// === Debugging ===
+// =================
 void Grid::dumpValues()
 {
 	printf("\n");

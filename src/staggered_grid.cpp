@@ -176,11 +176,15 @@ void StaggeredGrid::initializeVelocities()
 
 void StaggeredGrid::initializeTemperatureAndDensity(const Eigen::MatrixXd& q)
 {
+	Eigen::RowVector3d point;
+	Eigen::Vector3i gridPoint;
 	for (int i = 0; i < q.rows(); i++)
 	{
+		point = q.row(i);
+		tempGrid.getNearestGridPoint(gridPoint, point);
+		tempGrid(gridPoint(0), gridPoint(1), gridPoint(2)).value = FLUID_DENSITY;
+		densityGrid(gridPoint(0), gridPoint(1), gridPoint(2)).value = FLUID_TEMP;
 	}
-	this->tempGrid.setConstantValue(1);
-	this->densityGrid.setConstantValue(1);
 }
 
 // =================
@@ -331,7 +335,6 @@ void StaggeredGrid::applyBuoyancyForce()
 
 void StaggeredGrid::applyVorticityConfinement()
 {
-	// TODO: need more grids for vorticity, center velocity, etc.
 	// Compute omega = curl of velocity
 	double epsilon = 0.1;
 	double dc = 0;

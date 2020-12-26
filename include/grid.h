@@ -42,14 +42,18 @@ public:
 	std::vector<double> const& y();
 	std::vector<double> const& z();
 
-	/* Returns the value of the identified point. Returns value of the nearest point if out of bounds */
+	// Returns the value of the identified point. Returns value of the nearest point if out of bounds
 	double safeGet(int i, int j, int k);
 
-	/* Add to the value of the given point. Do nothing if given indices are out of bounds */
+	// Add to the value of the given point. Do nothing if given indices are out of bounds
 	void safeAdd(int i, int j, int k, double value);
 
+	// Boundary checks
 	bool isInBounds(int i, int j, int k);
 	bool isPointInBounds(double x, double y, double z);
+
+	// Works if point is out of bounds
+	void getNearestGridPoint(Eigen::Vector3i& gridPoint, const Eigen::RowVector3d& point);
 
 	// Debugging
 	void dumpValues();
