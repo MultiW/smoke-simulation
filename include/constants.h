@@ -25,7 +25,10 @@ const double AIR_DENSITY = 1.0;
 const double FLUID_TEMP = 1;
 const double AMBIENT_TEMP = 0;
 
-const double ALPHA = 0.08; // how much particles sink
-const double BETA = 0.97; // how much particles float
+const double ALPHA = 0.05; // how much particles sink
+const double BETA = 0.08; // how much particles float
+
+//const double ALPHA = 0.08; // how much particles sink
+//const double BETA = 0.97; // how much particles float
 
 #endif // !CONSTANTS_H

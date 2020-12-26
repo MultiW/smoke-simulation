@@ -19,6 +19,12 @@ public:
 	// Pressure grid
 	Grid pGrid;
 
+	// Omega grid used in vorticity
+	Grid omegaUGird;
+	Grid omegaVGird;
+	Grid omegaWGird;
+
+
 	// Smoke-specific components
 	Grid tempGrid; // temperature
 	Grid densityGrid; // fluid density
@@ -41,6 +47,10 @@ public:
 	* 2. Update grid velocities using pressure
 	*/
 	void applyPressureProjections();
+
+
+	//Vorticity Confinement
+	void vorticityConfinement();
 
 	// For testing
 	void getGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);

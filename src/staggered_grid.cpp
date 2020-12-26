@@ -29,7 +29,10 @@ StaggeredGrid::StaggeredGrid(
 	wGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2))),
 	pGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
 	tempGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
-	densityGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0))
+	densityGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
+	omegaUGird(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
+	omegaVGird(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
+	omegaWGird(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0))
 {
 	// Generate grids
 	Eigen::MatrixXd u, v, w, cellCenters;
@@ -40,6 +43,10 @@ StaggeredGrid::StaggeredGrid(
 	this->vGrid.setWorldPoints(v, this->getCellSize());
 	this->wGrid.setWorldPoints(w, this->getCellSize());
 	this->pGrid.setWorldPoints(cellCenters, this->getCellSize());
+	this->omegaUGird.setWorldPoints(cellCenters, this->getCellSize());
+	this->omegaVGird.setWorldPoints(cellCenters, this->getCellSize());
+	this->omegaWGird.setWorldPoints(cellCenters, this->getCellSize());
+
 	this->tempGrid.setWorldPoints(cellCenters, this->getCellSize());
 	this->densityGrid.setWorldPoints(cellCenters, this->getCellSize());
 
@@ -131,9 +138,13 @@ void StaggeredGrid::createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eig
 
 void StaggeredGrid::initializeVelocities()
 {
-	this->uGrid.setRandomValues(0, this->getCellSize());
-	this->vGrid.setRandomValues(-this->getCellSize(), this->getCellSize());
-	this->wGrid.setRandomValues(-this->getCellSize(), this->getCellSize());
+	//this->uGrid.setRandomValues(0, this->getCellSize());
+	//this->vGrid.setRandomValues(-this->getCellSize(), this->getCellSize());
+	//this->wGrid.setRandomValues(-this->getCellSize(), this->getCellSize());
+	double rand = 0.1;
+	this->vGrid.setRandomValues(-0, 0);
+	this->uGrid.setRandomValues(-rand, rand);
+	this->wGrid.setRandomValues(-rand, rand);
 }
 
 // =================
@@ -207,7 +218,6 @@ void StaggeredGrid::advectPosition(Eigen::MatrixXd &q) {
 		Eigen::RowVector3d point = q.row(i);
 		Eigen::RowVector3d vel;
 		this->getPointVelocity(vel, point);
-
 		vel = vel * dt;
 		this->enforceBoundaries(vel, point);
 		q.row(i) = point + vel;
@@ -239,6 +249,7 @@ void StaggeredGrid::enforceBoundaries(Eigen::RowVector3d &vel, Eigen::RowVector3
 		else if (newPoint[i] > maxs[1]) {
 			double dist = maxs[i] - point[i];
 			vel = vel / vel[i] * dist;
+
 		}
 	}
 }
@@ -253,13 +264,12 @@ void StaggeredGrid::applyBuoyancyForce()
 	int d3 = this->vGrid.size(2);
 
 	// Buoyancy force = (0, -alpha * s + beta(T - Tamb), 0)
-	// - where alpha, beta are tuning constants
+	// - where alpha, beta are tuning constants`s
 	// - s is the density and T is the temperature
 	double fBuoy, s, T;	
 	for (int i = 0; i < d1; i++)
 	{
 		for (int j = 0; j < d2; j++)
-		{
 			for (int k = 0; k < d3; k++)
 			{
 				// TODO: how to handle boundary cases? Only use one neighbor in those cases?
@@ -268,7 +278,8 @@ void StaggeredGrid::applyBuoyancyForce()
 				s = (this->densityGrid.safeGet(i, j, k) + this->densityGrid.safeGet(i, j - 1, k)) / 2;
 				T = (this->tempGrid.safeGet(i, j, k) + this->tempGrid.safeGet(i, j - 1, k)) / 2;
 				fBuoy = -ALPHA * s + BETA * (T - AMBIENT_TEMP);
-				this->vGrid(i, j, k).value += dt * fBuoy;
+				this->vGrid(i, j, k).value += dt * fBuoy;		{
+
 			}
 		}
 	}
@@ -448,6 +459,22 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p)
 	Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower | Eigen::Upper> cg;
 	cg.compute(A);
 	p = cg.solve(f);
+}
+
+
+// Vorticity Confinement
+void StaggeredGrid::vorticityConfinement() {
+	double denom = 2 * this->getCellSize();
+	for (int i = 0; i < this->omegaUGird.size(0); i++) {
+		for (int j = 0; j < this->omegaVGird.size(1); j++) {
+			for (int k = 0; k < this->omegaWGird.size(2); k++) {
+				this->omegaUGird(i, j, k).value = (this->wGrid.safeGet(i, j + 1, k) - this->wGrid.safeGet(i, j - 1, k)) / denom - (this->vGrid.safeGet(i, j, k + 1) - this->vGrid.safeGet(i, j, k - 1)) / denom;
+				this->omegaVGird(i, j, k).value = (this->uGrid.safeGet(i, j, k + 1) - this->uGrid.safeGet(i, j, k - 1)) / denom - (this->wGrid.safeGet(i + 1, j, k) - this->wGrid.safeGet(i - 1, j, k)) / denom;
+				this->omegaWGird(i, j, k).value = (this->vGrid.safeGet(i + 1, j, k) - this->wGrid.safeGet(i - 1, j, k)) / denom - (this->uGrid.safeGet(i, j + 1, k) - this->vGrid.safeGet(i, j - 1, k)) / denom;
+			}
+
+		}
+	}
 }
 
 // =================================
