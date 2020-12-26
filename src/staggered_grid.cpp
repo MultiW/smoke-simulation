@@ -324,8 +324,38 @@ void StaggeredGrid::applyVorticityConfinement()
 {
 	// TODO: need more grids for vorticity, center velocity, etc.
 	// Compute omega = curl of velocity
-	double epsilon = 0.001;
+	double epsilon = 0.1;
+	double dc = 0;
 	this->vorticityConfinement(epsilon);
+
+	for (int i = 1; i < uGrid.size(0); i++) {
+		for (int j = 0; j < uGrid.size(1); j++) {
+			for (int k = 0; k < uGrid.size(2); k++) {
+				dc = dt * (this->vortConfU.safeGet(i, j, k) + this->vortConfU.safeGet(i + 1, j, k)) / (2 * FLUID_DENSITY);
+				this->uGrid.safeAdd(i, j, k, dc);
+			}
+		}
+	}
+
+
+	for (int i = 1; i < vGrid.size(0); i++) {
+		for (int j = 0; j < vGrid.size(1); j++) { 
+			for (int k = 0; k < vGrid.size(2); k++) {
+				dc = dt * (this->vortConfV.safeGet(i, j, k) + this->vortConfV.safeGet(i, j + 1, k)) / (2 * FLUID_DENSITY);
+				this->vGrid.safeAdd(i, j, k, dc);
+			}
+		}
+	}
+
+	for (int i = 1; i < wGrid.size(0); i++) {
+		for (int j = 0; j < wGrid.size(1); j++) {
+			for (int k = 0; k < wGrid.size(2); k++) {
+				dc = dt * (this->vortConfW.safeGet(i, j, k) + this->vortConfW.safeGet(i, j, k + 1)) / (2 * FLUID_DENSITY);
+				this->wGrid.safeAdd(i, j, k, dc);
+			}
+		}
+	}
+
 }
 
 
@@ -529,10 +559,8 @@ void StaggeredGrid::centerVelandNorm(double denom) {
 
 				this->omegaWGrid(i, j, k).value = ((first[1] - second[1]) - (third[0] - fourth[0])) / denom;
 
-				Eigen::Vector3d norm(this->omegaUGrid(i, j, k).value, this->omegaUGrid(i, j, k).value, this->omegaUGrid(i, j, k).value);
+				Eigen::Vector3d norm(this->omegaUGrid(i, j, k).value, this->omegaVGrid(i, j, k).value, this->omegaWGrid(i, j, k).value);
 				this->omegaNormal(i, j, k).value = norm.norm();
-
-
 			}
 
 		}
@@ -545,16 +573,18 @@ void StaggeredGrid::vorticityConfinement(double epsilon) {
 
 	this->centerVelandNorm(denom);
 
-	for (int i = 0; i < this->omegaUGrid.size(0); i++) {
-		for (int j = 0; j < this->omegaVGrid.size(1); j++) {
-			for (int k = 0; k < this->omegaWGrid.size(2); k++) {
+	for (int i = 0; i < this->omegaNormal.size(0); i++) {
+		for (int j = 0; j < this->omegaNormal.size(1); j++) {
+			for (int k = 0; k < this->omegaNormal.size(2); k++) {
 				Eigen::Vector3d norm, omega, res;
 				norm[0] = (this->omegaNormal.safeGet(i + 1, j, k) - this->omegaNormal.safeGet(i - 1, j, k)) / denom;
 				norm[1] = (this->omegaNormal.safeGet(i, j + 1, k) - this->omegaNormal.safeGet(i, j - 1, k)) / denom;
 				norm[2] = (this->omegaNormal.safeGet(i, j, k + 1) - this->omegaNormal.safeGet(i, j, k - 1)) / denom;
 				norm = norm / (norm.norm() + 1e-20);
-				omega << this->omegaGradU.safeGet(i, j, k), this->omegaGradV.safeGet(i, j, k), this->omegaGradW.safeGet(i, j, k);
+				omega << this->omegaUGrid.safeGet(i, j, k), this->omegaVGrid.safeGet(i, j, k), this->omegaWGrid.safeGet(i, j, k);
+
 				res = norm.cross(omega) * this->getCellSize() * epsilon;
+				
 				this->vortConfU(i, j, k).value = res[0];
 				this->vortConfV(i, j, k).value = res[1];
 				this->vortConfW(i, j, k).value = res[2];
