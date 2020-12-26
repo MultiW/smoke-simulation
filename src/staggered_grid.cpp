@@ -19,58 +19,60 @@ typedef Eigen::Triplet<double> T;
 StaggeredGrid::StaggeredGrid() {}
 
 StaggeredGrid::StaggeredGrid(
+	const Eigen::MatrixXd& q,
 	const Eigen::AlignedBox3d& box,
-	const Eigen::Vector3i& dim
+	const Eigen::Vector3i& dim,
+	double cellSize
 ) :
 	box(box),
 	dim(dim),
-	uGrid(Grid(dim(0), dim(1) - 1.0, dim(2) - 1.0)),
-	vGrid(Grid(dim(0)- 1.0, dim(1), dim(2) - 1.0)),
-	wGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2))),
-	pGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
-	tempGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
-	densityGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
-	omegaUGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
-	omegaVGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
-	omegaWGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
-	omegaNormal(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
-	omegaGradU(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
-	omegaGradV(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
-	omegaGradW(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
+	cellSize(cellSize),
+	uGrid(Grid(dim(0), dim(1) - 1.0, dim(2) - 1.0, cellSize)),
+	vGrid(Grid(dim(0)- 1.0, dim(1), dim(2) - 1.0, cellSize)),
+	wGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2), cellSize)),
+	pGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
 
-	vortConfU(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
-	vortConfV(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
-	vortConfW(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0))
-	
+	tempGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
+	densityGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
+
+	// vorticity confinement grids
+	omegaUGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
+	omegaVGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
+	omegaWGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
+	omegaNormal(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
+	omegaGradU(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
+	omegaGradV(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
+	omegaGradW(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
+	vortConfU(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
+	vortConfV(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
+	vortConfW(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize))
 {
 	// Generate grids
 	Eigen::MatrixXd u, v, w, cellCenters;
 	this->createGridPoints(u, v, w, cellCenters);
 
 	// Convert to Grid object
-	this->uGrid.setWorldPoints(u, this->getCellSize());
-	this->vGrid.setWorldPoints(v, this->getCellSize());
-	this->wGrid.setWorldPoints(w, this->getCellSize());
-	this->pGrid.setWorldPoints(cellCenters, this->getCellSize());
-	this->omegaUGrid.setWorldPoints(cellCenters, this->getCellSize());
-	this->omegaVGrid.setWorldPoints(cellCenters, this->getCellSize());
-	this->omegaWGrid.setWorldPoints(cellCenters, this->getCellSize());
-	this->omegaNormal.setWorldPoints(cellCenters, this->getCellSize());
-	this->omegaGradU.setWorldPoints(cellCenters, this->getCellSize());
-	this->omegaGradV.setWorldPoints(cellCenters, this->getCellSize());
-	this->omegaGradW.setWorldPoints(cellCenters, this->getCellSize());
-	this->vortConfU.setWorldPoints(cellCenters, this->getCellSize());
-	this->vortConfV.setWorldPoints(cellCenters, this->getCellSize());
-	this->vortConfW.setWorldPoints(cellCenters, this->getCellSize());
+	this->uGrid.setWorldPoints(u);
+	this->vGrid.setWorldPoints(v);
+	this->wGrid.setWorldPoints(w);
+	this->pGrid.setWorldPoints(cellCenters);
 
-	this->tempGrid.setWorldPoints(cellCenters, this->getCellSize());
-	this->densityGrid.setWorldPoints(cellCenters, this->getCellSize());
+	this->tempGrid.setWorldPoints(cellCenters);
+	this->densityGrid.setWorldPoints(cellCenters);
+
+	this->omegaUGrid.setWorldPoints(cellCenters);
+	this->omegaVGrid.setWorldPoints(cellCenters);
+	this->omegaWGrid.setWorldPoints(cellCenters);
+	this->omegaNormal.setWorldPoints(cellCenters);
+	this->omegaGradU.setWorldPoints(cellCenters);
+	this->omegaGradV.setWorldPoints(cellCenters);
+	this->omegaGradW.setWorldPoints(cellCenters);
+	this->vortConfU.setWorldPoints(cellCenters);
+	this->vortConfV.setWorldPoints(cellCenters);
+	this->vortConfW.setWorldPoints(cellCenters);
 
 	this->initializeVelocities();
-
-	// Set default temperature and density
-	this->tempGrid.setConstantValue(FLUID_TEMP);
-	this->densityGrid.setConstantValue(FLUID_DENSITY);
+	this->initializeTemperatureAndDensity(q);
 }
 
 // ======================
@@ -106,7 +108,7 @@ void StaggeredGrid::applyPressureProjections() {
 
 double StaggeredGrid::getCellSize()
 {
-	return this->box.sizes()(0) / (this->dim(0) - 1.0);
+	return this->cellSize;
 }
 
 void StaggeredGrid::getGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p)
@@ -169,6 +171,16 @@ void StaggeredGrid::initializeVelocities()
 	this->vGrid.setXZPlane(this->vGrid.size(1) - 1, 0);
 	this->wGrid.setXYPlane(0, 0);
 	this->wGrid.setXYPlane(this->wGrid.size(2) - 1, 0);
+}
+
+
+void StaggeredGrid::initializeTemperatureAndDensity(const Eigen::MatrixXd& q)
+{
+	for (int i = 0; i < q.rows(); i++)
+	{
+	}
+	this->tempGrid.setConstantValue(1);
+	this->densityGrid.setConstantValue(1);
 }
 
 // =================
@@ -308,9 +320,6 @@ void StaggeredGrid::applyBuoyancyForce()
 		{
 			for (int k = 0; k < d3; k++)
 			{
-				// TODO: how to handle boundary cases? Only use one neighbor in those cases?
-				//    - currently, the "out of bounds" neighbor is converted to a 0, 
-				//      so the s and T values are small because we still divide by 2
 				s = (this->densityGrid.safeGet(i, j, k) + this->densityGrid.safeGet(i, j - 1, k)) / 2;
 				T = (this->tempGrid.safeGet(i, j, k) + this->tempGrid.safeGet(i, j - 1, k)) / 2;
 				fBuoy = -ALPHA * s + BETA * (T - AMBIENT_TEMP);

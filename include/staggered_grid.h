@@ -9,6 +9,8 @@ class StaggeredGrid {
 
 	// Dimension and location of grid in world-space
 	Eigen::AlignedBox3d box;
+
+	double cellSize;
 public:
 	// TODO: move back to private when done
 	// Velocity grids
@@ -39,7 +41,7 @@ public:
 	// -----------------------------------------
 
 	StaggeredGrid();
-	StaggeredGrid(const Eigen::AlignedBox3d& box, const Eigen::Vector3i& dim);
+	StaggeredGrid(const Eigen::MatrixXd& q, const Eigen::AlignedBox3d& box, const Eigen::Vector3i& dim, double cellSize);
 
 	// Advection
 	void advectVelocities();
@@ -71,6 +73,7 @@ private:
 	// Initialization
 	void createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);
 	void initializeVelocities();
+	void initializeTemperatureAndDensity(const Eigen::MatrixXd& q);
 
 	// External forces
 	void applyBuoyancyForce();
