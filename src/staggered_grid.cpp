@@ -208,9 +208,6 @@ void StaggeredGrid::advectVelocity(Grid& grid)
 }
 
 void StaggeredGrid::advectPosition(Eigen::MatrixXd &q) {
-	//Eigen::MatrixXd qnext;
-	//qnext.resize(q.rows(), q.cols());
-
 	for (int i = 0; i < q.rows(); i++) {
 		Eigen::RowVector3d point = q.row(i);
 		Eigen::RowVector3d vel;
@@ -219,8 +216,6 @@ void StaggeredGrid::advectPosition(Eigen::MatrixXd &q) {
 		vel = vel * dt;
 		this->enforceBoundaries(vel, point);
 		q.row(i) = point + vel;
-		//qnext.row(i) = point + vel*dt;
-
 	}
 }
 
@@ -244,7 +239,7 @@ void StaggeredGrid::enforceBoundaries(Eigen::RowVector3d &vel, Eigen::RowVector3
 			double dist = mins[i] - point[i];
 			vel = vel / vel[i] * dist;
 		}
-		else if (newPoint[i] > maxs[1]) {
+		else if (newPoint[i] > maxs[i]) {
 			double dist = maxs[i] - point[i];
 			vel = vel / vel[i] * dist;
 		}
