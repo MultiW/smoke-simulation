@@ -30,9 +30,18 @@ StaggeredGrid::StaggeredGrid(
 	pGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
 	tempGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
 	densityGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
-	omegaUGird(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
-	omegaVGird(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
-	omegaWGird(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0))
+	omegaUGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
+	omegaVGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
+	omegaWGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
+	omegaNormal(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
+	omegaGradU(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
+	omegaGradV(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
+	omegaGradW(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
+
+	vortConfU(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
+	vortConfV(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0)),
+	vortConfW(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0))
+	
 {
 	// Generate grids
 	Eigen::MatrixXd u, v, w, cellCenters;
@@ -43,9 +52,16 @@ StaggeredGrid::StaggeredGrid(
 	this->vGrid.setWorldPoints(v, this->getCellSize());
 	this->wGrid.setWorldPoints(w, this->getCellSize());
 	this->pGrid.setWorldPoints(cellCenters, this->getCellSize());
-	this->omegaUGird.setWorldPoints(cellCenters, this->getCellSize());
-	this->omegaVGird.setWorldPoints(cellCenters, this->getCellSize());
-	this->omegaWGird.setWorldPoints(cellCenters, this->getCellSize());
+	this->omegaUGrid.setWorldPoints(cellCenters, this->getCellSize());
+	this->omegaVGrid.setWorldPoints(cellCenters, this->getCellSize());
+	this->omegaWGrid.setWorldPoints(cellCenters, this->getCellSize());
+	this->omegaNormal.setWorldPoints(cellCenters, this->getCellSize());
+	this->omegaGradU.setWorldPoints(cellCenters, this->getCellSize());
+	this->omegaGradV.setWorldPoints(cellCenters, this->getCellSize());
+	this->omegaGradW.setWorldPoints(cellCenters, this->getCellSize());
+	this->vortConfU.setWorldPoints(cellCenters, this->getCellSize());
+	this->vortConfV.setWorldPoints(cellCenters, this->getCellSize());
+	this->vortConfW.setWorldPoints(cellCenters, this->getCellSize());
 
 	this->tempGrid.setWorldPoints(cellCenters, this->getCellSize());
 	this->densityGrid.setWorldPoints(cellCenters, this->getCellSize());
@@ -292,7 +308,8 @@ void StaggeredGrid::applyVorticityConfinement()
 {
 	// TODO: need more grids for vorticity, center velocity, etc.
 	// Compute omega = curl of velocity
-	Eigen::Vector3d omega;
+	double epsilon = 0.001;
+	this->vorticityConfinement(epsilon);
 }
 
 
@@ -465,17 +482,68 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p)
 }
 
 
-// Vorticity Confinement
-void StaggeredGrid::vorticityConfinement() {
-	double denom = 2 * this->getCellSize();
-	for (int i = 0; i < this->omegaUGird.size(0); i++) {
-		for (int j = 0; j < this->omegaVGird.size(1); j++) {
-			for (int k = 0; k < this->omegaWGird.size(2); k++) {
-				this->omegaUGird(i, j, k).value = (this->wGrid.safeGet(i, j + 1, k) - this->wGrid.safeGet(i, j - 1, k)) / denom - (this->vGrid.safeGet(i, j, k + 1) - this->vGrid.safeGet(i, j, k - 1)) / denom;
-				this->omegaVGird(i, j, k).value = (this->uGrid.safeGet(i, j, k + 1) - this->uGrid.safeGet(i, j, k - 1)) / denom - (this->wGrid.safeGet(i + 1, j, k) - this->wGrid.safeGet(i - 1, j, k)) / denom;
-				this->omegaWGird(i, j, k).value = (this->vGrid.safeGet(i + 1, j, k) - this->wGrid.safeGet(i - 1, j, k)) / denom - (this->uGrid.safeGet(i, j + 1, k) - this->vGrid.safeGet(i, j - 1, k)) / denom;
+void StaggeredGrid::centerVelandNorm(double denom) {
+	for (int i = 0; i < this->omegaUGrid.size(0); i++) {
+		for (int j = 0; j < this->omegaVGrid.size(1); j++) {
+			for (int k = 0; k < this->omegaWGrid.size(2); k++) {
+
+				//get the cetner velocities at each face and compute
+				Eigen::Vector3d first, second, third, fourth;
+				this->getVelocityAtCenter(first, i, j + 1, k);
+				this->getVelocityAtCenter(second, i, j - 1, k);
+
+				this->getVelocityAtCenter(third, i, j, k + 1);
+				this->getVelocityAtCenter(fourth, i, j, k - 1);
+
+				this->omegaUGrid(i, j, k).value = ((first[2] - second[2]) - (third[1] - fourth[1])) / denom;
+
+				this->getVelocityAtCenter(first, i, j, k + 1);
+				this->getVelocityAtCenter(second, i, j, k - 1);
+
+				this->getVelocityAtCenter(third, i + 1, j, k);
+				this->getVelocityAtCenter(fourth, i - 1, j, k);
+
+				this->omegaVGrid(i, j, k).value = ((first[0] - second[0]) - (third[2] - fourth[2])) / denom;
+
+				this->getVelocityAtCenter(first, i + 1, j, k);
+				this->getVelocityAtCenter(second, i - 1, j, k);
+
+				this->getVelocityAtCenter(third, i, j + 1, k);
+				this->getVelocityAtCenter(fourth, i, j - 1, k);
+
+				this->omegaWGrid(i, j, k).value = ((first[1] - second[1]) - (third[0] - fourth[0])) / denom;
+
+				Eigen::Vector3d norm(this->omegaUGrid(i, j, k).value, this->omegaUGrid(i, j, k).value, this->omegaUGrid(i, j, k).value);
+				this->omegaNormal(i, j, k).value = norm.norm();
+
+
 			}
 
+		}
+	}
+}
+
+// Vorticity Confinement
+void StaggeredGrid::vorticityConfinement(double epsilon) {
+	double denom = 2 * this->getCellSize();
+
+	this->centerVelandNorm(denom);
+
+	for (int i = 0; i < this->omegaUGrid.size(0); i++) {
+		for (int j = 0; j < this->omegaVGrid.size(1); j++) {
+			for (int k = 0; k < this->omegaWGrid.size(2); k++) {
+				Eigen::Vector3d norm, omega, res;
+				norm[0] = (this->omegaNormal.safeGet(i + 1, j, k) - this->omegaNormal.safeGet(i - 1, j, k)) / denom;
+				norm[1] = (this->omegaNormal.safeGet(i, j + 1, k) - this->omegaNormal.safeGet(i, j - 1, k)) / denom;
+				norm[2] = (this->omegaNormal.safeGet(i, j, k + 1) - this->omegaNormal.safeGet(i, j, k - 1)) / denom;
+				norm = norm / (norm.norm() + 1e-20);
+				omega << this->omegaGradU.safeGet(i, j, k), this->omegaGradV.safeGet(i, j, k), this->omegaGradW.safeGet(i, j, k);
+				res = norm.cross(omega) * this->getCellSize() * epsilon;
+				this->vortConfU(i, j, k).value = res[0];
+				this->vortConfV(i, j, k).value = res[1];
+				this->vortConfW(i, j, k).value = res[2];
+
+			}
 		}
 	}
 }

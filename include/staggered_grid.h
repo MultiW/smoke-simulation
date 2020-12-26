@@ -20,10 +20,18 @@ public:
 	Grid pGrid;
 
 	// Omega grid used in vorticity
-	Grid omegaUGird;
-	Grid omegaVGird;
-	Grid omegaWGird;
+	Grid omegaUGrid;
+	Grid omegaVGrid;
+	Grid omegaWGrid;
 
+	Grid omegaNormal;
+	Grid omegaGradU;
+	Grid omegaGradV;
+	Grid omegaGradW;
+
+	Grid vortConfU;
+	Grid vortConfV;
+	Grid vortConfW;
 
 	// Smoke-specific components
 	Grid tempGrid; // temperature
@@ -50,7 +58,8 @@ public:
 
 
 	//Vorticity Confinement
-	void vorticityConfinement();
+	void vorticityConfinement(double epislon);
+	void centerVelandNorm(double denom);
 
 	// For testing
 	void getGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);
