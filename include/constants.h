@@ -12,11 +12,11 @@ const Eigen::Vector3i BOX_DIM(40, 20, 20);
 // dimensions of staggered grid to compute pressure
 // - NOTE: GRID_DIM - 1 (along all dimensions) must have the same 
 // - propertions as BOX_DIM
-const Eigen::Vector3i GRID_DIM(5, 3, 3);
+const Eigen::Vector3i GRID_DIM(41, 21, 21);
 
 // smoke particle count
-const int PARTICLE_COUNT = 10;
-const Eigen::AlignedBox3d SMOKE_BOUNDS(Eigen::Vector3d(5, 5, 5), Eigen::Vector3d(10, 10, 10));
+const int PARTICLE_COUNT = 50;
+const Eigen::AlignedBox3d SMOKE_BOUNDS(Eigen::Vector3d(5, 5, 5), Eigen::Vector3d(8, 8, 8));
 
 // buoyancy force variables
 const double FLUID_DENSITY = 2.0;

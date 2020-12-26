@@ -14,9 +14,9 @@
 class Grid {
 public:
 	Grid();
-	Grid::Grid(size_t d1, size_t d2, size_t d3);
+	Grid::Grid(size_t d1, size_t d2, size_t d3, double cellSize);
 
-	void setWorldPoints(const Eigen::MatrixXd& points, double cellSize);
+	void setWorldPoints(const Eigen::MatrixXd& points);
 
 	void setConstantValue(double value);
 
@@ -42,7 +42,7 @@ public:
 	std::vector<double> const& y();
 	std::vector<double> const& z();
 
-	/* Returns the value of the identified point. Return 0 if out of bounds */
+	/* Returns the value of the identified point. Returns value of the nearest point if out of bounds */
 	double safeGet(int i, int j, int k);
 
 	/* Add to the value of the given point. Do nothing if given indices are out of bounds */

@@ -86,7 +86,7 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q)
 
 	smokeId = Visualize::addPointsToScene(q, white);
 
-	staggeredGrid = StaggeredGrid(smokeBox, GRID_DIM);
+	staggeredGrid = StaggeredGrid(q, smokeBox, GRID_DIM, smokeBox.sizes()(0) / (GRID_DIM(0) - 1.0));
 
 	////// TODO: DELETE. Testing if initialization of staggered grid points is correct
 	//Eigen::MatrixXd u, v, w, p;

@@ -7,12 +7,13 @@
 
 Grid::Grid() {}
 
-Grid::Grid(size_t d1, size_t d2, size_t d3):
-	grid(d1, d2, d3)
+Grid::Grid(size_t d1, size_t d2, size_t d3, double cellSize):
+	grid(d1, d2, d3),
+	cellSize(cellSize)
 {
 }
 
-void Grid::setWorldPoints(const Eigen::MatrixXd& points, double cellSize)
+void Grid::setWorldPoints(const Eigen::MatrixXd& points)
 {
 	// Grid's sorted x, y, z values
 	// Note: Eigen Matrix is stored in column-major order
@@ -20,7 +21,7 @@ void Grid::setWorldPoints(const Eigen::MatrixXd& points, double cellSize)
 	colToSortedVector(points.col(1), this->_y);
 	colToSortedVector(points.col(2), this->_z);
 
-	double epsilon = cellSize / 10.0;
+	double epsilon = this->cellSize / 10.0;
 
 	int xIdx, yIdx, zIdx;
 	Eigen::RowVector3d currPoint;
@@ -28,9 +29,9 @@ void Grid::setWorldPoints(const Eigen::MatrixXd& points, double cellSize)
 	{
 		currPoint = points.row(i);
 
-		xIdx = getPointIdx(this->_x, cellSize, currPoint(0), epsilon);
-		yIdx = getPointIdx(this->_y, cellSize, currPoint(1), epsilon);
-		zIdx = getPointIdx(this->_z, cellSize, currPoint(2), epsilon);
+		xIdx = getPointIdx(this->_x, this->cellSize, currPoint(0), epsilon);
+		yIdx = getPointIdx(this->_y, this->cellSize, currPoint(1), epsilon);
+		zIdx = getPointIdx(this->_z, this->cellSize, currPoint(2), epsilon);
 
 		if (xIdx < grid.size(0) && yIdx < grid.size(1) && zIdx < grid.size(2))
 		{
@@ -38,8 +39,6 @@ void Grid::setWorldPoints(const Eigen::MatrixXd& points, double cellSize)
 			grid(xIdx, yIdx, zIdx).worldPoint = Eigen::Vector3d(currPoint(0), currPoint(1), currPoint(2));
 		}
 	}
-
-	this->cellSize = cellSize;
 	this->points = points;
 }
 
