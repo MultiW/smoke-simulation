@@ -57,6 +57,8 @@ public:
 private:
 	double getCellSize();
 
+	void getVelocityAtCenter(Eigen::Vector3d& velocityAtCenter, int i, int j, int k);
+
 	// Initialization
 	void createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);
 	void initializeVelocities();

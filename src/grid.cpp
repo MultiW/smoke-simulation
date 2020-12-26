@@ -80,11 +80,11 @@ double Grid::interpolatePoint(const Eigen::RowVector3d point)
 
 double Grid::safeGet(int i, int j, int k)
 {
-	if (this->isInBounds(i, j, k))
-	{
-		return this->grid(i, j, k).value;
-	}
-	return 0;
+	// clamp i, j, k to the range.
+	i = std::min(std::max(i, 0), (int) this->size(0) - 1);
+	j = std::min(std::max(j, 0), (int) this->size(1) - 1);
+	k = std::min(std::max(k, 0), (int) this->size(2) - 1);
+	return this->grid(i, j, k).value;
 }
 
 void Grid::safeAdd(int i, int j, int k, double value)
