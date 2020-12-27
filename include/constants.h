@@ -42,9 +42,7 @@ const double ballRadius = 3;
 const bool bunny = true;
 const Eigen::Vector3d initialBunnyPosition(boxX / 2, boxY / 2, boxZ / 2);
 const Eigen::RowVector3d bunnyVelocity(5, 0, 0);
-const double bunnyHalfLengths = 3;
-
-
+const double bunnyHalfLengths = 3; // of side in the x direction
 
 #endif // !CONSTANTS_H
 
