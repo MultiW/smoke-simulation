@@ -263,10 +263,18 @@ void StaggeredGrid::advectVelocity(Grid& grid)
 }
 
 void StaggeredGrid::advectPosition(Eigen::MatrixXd& q) {
+	Eigen::VectorXd distances, closestFaces;
+	Eigen::MatrixXd closestPoints, closestNormals;
+
+	if (bunny) {
+		igl::signed_distance(q, *bunnyV, *bunnyF,
+			igl::SIGNED_DISTANCE_TYPE_FAST_WINDING_NUMBER, std::numeric_limits<double>::min(), std::numeric_limits<double>::max(),
+			distances, closestFaces, closestPoints, closestNormals);
+	}
 	for (int i = 0; i < q.rows(); i++) {
 		Eigen::RowVector3d point = q.row(i);
 		Eigen::RowVector3d nextPoint, vel;
-		this->getPointVelocity(vel, point);
+		this->getSmokePointVelocity(vel, point, distances, closestNormals, i);
 		nextPoint = point + vel * dt;
 		this->enforceBoundaries(point, nextPoint);
 		
@@ -284,33 +292,20 @@ void StaggeredGrid::advectPosition(Eigen::MatrixXd& q) {
 	}
 
 	if (bunny) {
-		Eigen::VectorXd distances, closestFaces;
-		Eigen::MatrixXd closestPoints, closestNormals;
 		igl::signed_distance(q, *bunnyV, *bunnyF,
 			igl::SIGNED_DISTANCE_TYPE_FAST_WINDING_NUMBER, std::numeric_limits<double>::min(), std::numeric_limits<double>::max(),
 			distances, closestFaces, closestPoints, closestNormals);
-		//std::cout << distances(0) << "\n";
-		//std::cout << "-------\n";
-		//if (distances(0) < 0) {
-		//	std::cout << "this isnt printing\n";
-		//	nextPoint = closestPoints.row(0);
-		//}
 
 		for (int i = 0; i < q.rows(); i++) {
-			if (distances(i) < 0 + 2) {
+			if (distances(i) < 0) {
 				q.row(i) = closestPoints.row(i);
 			}
 		}
 	}
-
-
 }
 
-void StaggeredGrid::getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVector3d &point) {
-	velocity(0) = uGrid.interpolatePoint(point);
-	velocity(1) = vGrid.interpolatePoint(point);
-	velocity(2) = wGrid.interpolatePoint(point);
-	
+void StaggeredGrid::getSmokePointVelocity(Eigen::RowVector3d& velocity, Eigen::RowVector3d& point, Eigen::VectorXd distances, Eigen::MatrixXd& closestNormals, int index) {
+	this->getPointVelocity(velocity, point);
 	if (ball) {
 		Eigen::Vector3d center = ballCenter.transpose();
 		Eigen::RowVector3d dist = center.transpose() - point;
@@ -318,19 +313,21 @@ void StaggeredGrid::getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVec
 			//from https://gamedev.stackexchange.com/questions/150322/how-to-find-collision-reflection-vector-on-a-sphere
 			dist.normalize();
 			velocity = velocity - 2 * (velocity.dot(dist)) * dist;
-		}		
-	} 
-	else if (bunny) {
-		Eigen::VectorXd distances, closestFaces;
-		Eigen::MatrixXd closestPoints, closestNormals;
-		igl::signed_distance(point, *bunnyV, *bunnyF,
-			igl::SIGNED_DISTANCE_TYPE_PSEUDONORMAL, std::numeric_limits<double>::min(), std::numeric_limits<double>::max(),
-			distances, closestFaces, closestPoints, closestNormals);
-		//if (distances(0) <= 0) {
-		//	velocity = velocity - 2 * (velocity.dot(closestPoints.row(0))) * closestPoints.row(0);
-		//}
+		}
 	}
-	
+	else if (bunny) {
+		if (distances(index) == 0) {
+			Eigen::RowVector3d dist = closestNormals.row(index);
+			dist.normalize();
+			velocity = velocity - 2 * (velocity.dot(dist)) * dist;
+		}
+	}
+}
+
+void StaggeredGrid::getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVector3d &point) {
+	velocity(0) = uGrid.interpolatePoint(point);
+	velocity(1) = vGrid.interpolatePoint(point);
+	velocity(2) = wGrid.interpolatePoint(point);
 }
 
 void StaggeredGrid::enforceBoundaries(const Eigen::RowVector3d &point, Eigen::RowVector3d &nextPoint) {
@@ -358,9 +355,7 @@ void StaggeredGrid::enforceBoundaries(const Eigen::RowVector3d &point, Eigen::Ro
 		}
 	}
 
-	nextPoint(0) = enclosedPoint(0);
-	nextPoint(1) = enclosedPoint(1);
-	nextPoint(2) = enclosedPoint(2);
+	nextPoint = enclosedPoint;
 }
 
 // =============================
