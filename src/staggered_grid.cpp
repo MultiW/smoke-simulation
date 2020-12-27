@@ -275,6 +275,10 @@ void StaggeredGrid::advectPosition(Eigen::MatrixXd& q) {
 				nextPoint = center + distance * ballRadius;
 			}
 		}
+		else if (bunny) {
+			//check if point is in the bunny
+			//if so, move it into the surface
+		}
 
 		q.row(i) = nextPoint;
 	}
@@ -293,6 +297,11 @@ void StaggeredGrid::getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVec
 			dist.normalize();
 			velocity = velocity - 2 * (velocity.dot(dist)) * dist;
 		}		
+	}
+	else if (bunny) {
+		//check if point is on the bunny
+
+		//if so, move it to the side
 	}
 	
 }
