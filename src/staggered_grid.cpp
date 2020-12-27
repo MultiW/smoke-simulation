@@ -50,7 +50,6 @@ StaggeredGrid::StaggeredGrid(
 	// Generate grids
 	Eigen::MatrixXd u, v, w, cellCenters;
 	this->createGridPoints(u, v, w, cellCenters);
-
 	// Convert to Grid object
 	this->uGrid.setWorldPoints(u);
 	this->vGrid.setWorldPoints(v);
@@ -159,10 +158,10 @@ void StaggeredGrid::initializeVelocities()
 	//this->uGrid.setRandomValues(0, this->getCellSize());
 	//this->vGrid.setRandomValues(-this->getCellSize(), this->getCellSize());
 	//this->wGrid.setRandomValues(-this->getCellSize(), this->getCellSize());
-	double rand = 1;
-	this->vGrid.setRandomValues(-rand, 0);
-	this->uGrid.setRandomValues(-rand, 0);
-	this->wGrid.setRandomValues(-rand, 0);
+	double rand = 40;
+	this->vGrid.setRandomValues(-rand, rand);
+	this->uGrid.setRandomValues(-rand, rand);
+	this->wGrid.setRandomValues(-rand, rand);
 
 	// set velocities to not shoot outside the grid
 	this->uGrid.setYZPlane(0, 0);
@@ -186,6 +185,7 @@ void StaggeredGrid::initializeTemperatureAndDensity(const Eigen::MatrixXd& q)
 		densityGrid(gridPoint(0), gridPoint(1), gridPoint(2)).value = FLUID_TEMP;
 	}
 }
+
 
 // =================
 // === Advection ===
@@ -265,6 +265,17 @@ void StaggeredGrid::advectPosition(Eigen::MatrixXd &q) {
 		this->getPointVelocity(vel, point);
 		nextPoint = point + vel * dt;
 		this->enforceBoundaries(point, nextPoint);
+		
+
+		if (ball) {
+			Eigen::Vector3d center = initialBallPosition;
+			Eigen::Vector3d distance = (nextPoint - center);
+			if (distance.norm() < ballRadius) {
+				distance.normalize();
+				nextPoint = center + distance * ballRadius;
+			}
+		}
+
 		q.row(i) = nextPoint;
 	}
 }
@@ -273,6 +284,17 @@ void StaggeredGrid::getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVec
 	velocity(0) = uGrid.interpolatePoint(point);
 	velocity(1) = vGrid.interpolatePoint(point);
 	velocity(2) = wGrid.interpolatePoint(point);
+	
+	if (ball) {
+		Eigen::Vector3d center = initialBallPosition;
+		Eigen::Vector3d dist = center-point;
+		if (dist.norm() == ballRadius) {
+			//from https://gamedev.stackexchange.com/questions/150322/how-to-find-collision-reflection-vector-on-a-sphere
+			dist.normalize();
+			velocity = velocity - 2 * (velocity.dot(dist)) * dist;
+		}		
+	}
+	
 }
 
 void StaggeredGrid::enforceBoundaries(const Eigen::RowVector3d &point, Eigen::RowVector3d &nextPoint) {
