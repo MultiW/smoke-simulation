@@ -258,7 +258,7 @@ void StaggeredGrid::advectVelocity(Grid& grid)
 	}
 }
 
-void StaggeredGrid::advectPosition(Eigen::MatrixXd &q) {
+void StaggeredGrid::advectPosition(Eigen::MatrixXd& q) {
 	for (int i = 0; i < q.rows(); i++) {
 		Eigen::RowVector3d point = q.row(i);
 		Eigen::RowVector3d nextPoint, vel;
@@ -268,7 +268,7 @@ void StaggeredGrid::advectPosition(Eigen::MatrixXd &q) {
 		
 
 		if (ball) {
-			Eigen::Vector3d center = initialBallPosition;
+			Eigen::Vector3d center = ballCenter.transpose();
 			Eigen::Vector3d distance = nextPoint.transpose() - center;
 			if (distance.norm() < ballRadius) {
 				distance.normalize();
@@ -286,7 +286,7 @@ void StaggeredGrid::getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVec
 	velocity(2) = wGrid.interpolatePoint(point);
 	
 	if (ball) {
-		Eigen::Vector3d center = initialBallPosition;
+		Eigen::Vector3d center = ballCenter.transpose();
 		Eigen::RowVector3d dist = center.transpose() - point;
 		if (dist.norm() == ballRadius) {
 			//from https://gamedev.stackexchange.com/questions/150322/how-to-find-collision-reflection-vector-on-a-sphere
@@ -627,6 +627,13 @@ void StaggeredGrid::vorticityConfinement(double epsilon) {
 		}
 	}
 }
+
+
+//Update balls and bunnies
+void StaggeredGrid::updateExternalObjects(Eigen::RowVector3d ballCenter) {
+	this->ballCenter = ballCenter;
+}
+
 
 // =================================
 // === Simulation box boundaries ===
