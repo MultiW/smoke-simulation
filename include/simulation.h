@@ -49,6 +49,8 @@ Eigen::MatrixXd bunnyV;
 Eigen::MatrixXi bunnyF;
 // ====
 
+Eigen::RowVector3d bunnyBoxHalfLengths;
+
 // Update location and velocity of smoke particles
 inline void simulate()
 {
@@ -80,6 +82,20 @@ inline void simulateBall()
 	}
 }
 
+inline void simulateBunny()
+{
+	Eigen::RowVector3d bunnyMaxCorner = currBunnyCenter + bunnyBoxHalfLengths + dt * bunnyVelocity;
+	Eigen::RowVector3d bunnyMinCorner = currBunnyCenter - bunnyBoxHalfLengths + dt * bunnyVelocity;
+	if (isInBox(SMOKE_BOX, bunnyMaxCorner) && isInBox(SMOKE_BOX, bunnyMinCorner))
+	{
+		for (int i = 0; i < bunnyV.rows(); i++)
+		{
+			bunnyV.row(i) += dt * bunnyVelocity;
+		}
+		currBunnyCenter += dt * bunnyVelocity;
+	}
+}
+
 inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::MatrixXd& q, const Eigen::AlignedBox3d& boundary)
 {
 	// Create box
@@ -99,7 +115,7 @@ inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::
 	}
 }
 
-inline void createBall(Eigen::MatrixXd& ballV, Eigen::MatrixXi& ballF)
+inline void initializeBall()
 {
    	igl::read_triangle_mesh("../data/sphere.obj", ballV, ballF);
 
@@ -110,7 +126,7 @@ inline void createBall(Eigen::MatrixXd& ballV, Eigen::MatrixXi& ballF)
    	transformVertices(ballV, sphereBoundaries);
 }
 
-inline void createBunny(Eigen::MatrixXd& bunnyV, Eigen::MatrixXi bunnyF)
+inline void initializeBunny()
 {
 	igl::read_triangle_mesh("../data/bunny.off", bunnyV, bunnyF);
 
@@ -122,17 +138,34 @@ inline void createBunny(Eigen::MatrixXd& bunnyV, Eigen::MatrixXi bunnyF)
 	createAlignedBox(boundingV, defaultBox);
 
 	// Scale bunny to set size
-	double scale = bunnyHalfLengths / (defaultBox.sizes()(0) / 2.0);
-	double xHalfLen = bunnyHalfLengths;
-	double yHalfLen = defaultBox.sizes()(1) * scale / 2;
-	double zHalfLen = defaultBox.sizes()(2) * scale / 2;
-	//Eigen::Vector3d minCorner = initialBunnyPosition - ;
-	Eigen::Vector3d maxCorner;
+	double scale = bunnyHalfLength / (defaultBox.sizes()(0) / 2.0);
+	bunnyBoxHalfLengths = Eigen::RowVector3d(bunnyHalfLength, defaultBox.sizes()(1) * scale / 2, defaultBox.sizes()(2) * scale / 2);
+	Eigen::Vector3d minCorner = initialBunnyPosition - bunnyBoxHalfLengths.transpose();
+	Eigen::Vector3d maxCorner = initialBunnyPosition + bunnyBoxHalfLengths.transpose();
+	Eigen::AlignedBox3d newBox(minCorner, maxCorner);
+
+	transformVertices(bunnyV, newBox);
 }
 
 // Must be called first
 inline void simulation_setup(int argc, char** argv)
 {
+	// Add sphere
+	if (ball)
+	{
+		currBallCenter = initialBallPosition.transpose();
+		initializeBall();
+		ballId = Visualize::addObjectToScene(ballV, ballF, orange);
+	}
+
+	// Add bunny
+	if (bunny)
+	{
+		currBunnyCenter = initialBunnyPosition.transpose();
+		initializeBunny();
+		bunnyId = Visualize::addObjectToScene(bunnyV, bunnyF, orange);
+	}
+
 	// Add box
 	Eigen::MatrixXd boxV;
 	Eigen::MatrixXi boxF;
@@ -143,22 +176,6 @@ inline void simulation_setup(int argc, char** argv)
 	smokeId = Visualize::addPointsToScene(q, white);
 
 	staggeredGrid = StaggeredGrid(q, SMOKE_BOX, GRID_DIM, SMOKE_BOX.sizes()(0) / (GRID_DIM(0) - 1.0));
-
-	// Add sphere
-	if (ball)
-	{
-		currBallCenter = initialBallPosition.transpose();
-		createBall(ballV, ballF);
-		ballId = Visualize::addObjectToScene(ballV, ballF, orange);
-	}
-	if (bunny)
-	{
-		currBunnyCenter = initialBunnyPosition.transpose();
-		createBunny(bunnyV, bunnyF);
-		bunnyId = Visualize::addObjectToScene(bunnyV, bunnyF, orange);
-	}
-
-	Visualize::viewer().selected_data_index = Visualize::viewer().mesh_index(boxId);
 
 	////// TODO: DELETE. Testing if initialization of staggered grid points is correct
 	//Eigen::MatrixXd u, v, w, p;
@@ -172,7 +189,14 @@ inline void simulation_setup(int argc, char** argv)
 inline void draw()
 {
 	Visualize::updatePoints(smokeId, q, white);
-	Visualize::updateObject(ballId, ballV);
+	if (ball)
+	{
+		Visualize::updateObject(ballId, ballV);
+	}
+	if (bunny)
+	{
+		Visualize::updateObject(bunnyId, bunnyV);
+	}
 }
 
 #endif

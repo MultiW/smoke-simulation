@@ -20,6 +20,11 @@ bool simulation_callback()
 			// Move sphere
 			simulateBall();
 		}
+		if (bunny)
+		{
+			// Move bunny
+			simulateBunny();
+		}
 
 		t += dt;
 	}
