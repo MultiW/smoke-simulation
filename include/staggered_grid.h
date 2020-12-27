@@ -11,6 +11,12 @@ class StaggeredGrid {
 	Eigen::AlignedBox3d box;
 
 	double cellSize;
+
+	// External objects
+	Eigen::RowVector3d ballCenter;
+
+	Eigen::MatrixXd* bunnyV;
+	Eigen::MatrixXi* bunnyF;
 public:
 	// TODO: move back to private when done
 	// Velocity grids
@@ -40,9 +46,6 @@ public:
 	Grid densityGrid; // fluid density
 	// -----------------------------------------
 
-	Eigen::RowVector3d ballCenter;
-
-
 	StaggeredGrid();
 	StaggeredGrid(const Eigen::MatrixXd& q, const Eigen::AlignedBox3d& box, const Eigen::Vector3i& dim, double cellSize);
 
@@ -67,7 +70,7 @@ public:
 
 
 	//for balls and bunnies
-	void updateExternalObjects(Eigen::RowVector3d ballCenter);
+	void updateExternalObjects(Eigen::RowVector3d& ballCenter, Eigen::MatrixXd* bunnyV, Eigen::MatrixXi* bunnyF);
 
 	// For testing
 	void getGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);

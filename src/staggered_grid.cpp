@@ -639,8 +639,11 @@ void StaggeredGrid::vorticityConfinement(double epsilon) {
 
 
 //Update balls and bunnies
-void StaggeredGrid::updateExternalObjects(Eigen::RowVector3d ballCenter) {
+void StaggeredGrid::updateExternalObjects(Eigen::RowVector3d& ballCenter, Eigen::MatrixXd* bunnyV, Eigen::MatrixXi* bunnyF)
+{
 	this->ballCenter = ballCenter;
+	this->bunnyV = bunnyV;
+	this->bunnyF = bunnyF;
 }
 
 

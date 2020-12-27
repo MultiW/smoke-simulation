@@ -10,6 +10,7 @@
 #include "util.h"
 
 #include <igl/grid.h>
+#include <igl/bounding_box.h>
 
 #include <Eigen/Geometry>
 
@@ -34,18 +35,24 @@ StaggeredGrid staggeredGrid;
 int smokeId;
 int boxId;
 int ballId;
+int bunnyId;
 
-// Simulation state
+// == Simulation State ==
 Eigen::MatrixXd q;
+
+Eigen::RowVector3d currBallCenter;
 Eigen::MatrixXd ballV;
 Eigen::MatrixXi ballF;
-Eigen::RowVector3d currBallCenter;
+
+Eigen::RowVector3d currBunnyCenter;
+Eigen::MatrixXd bunnyV;
+Eigen::MatrixXi bunnyF;
+// ====
 
 // Update location and velocity of smoke particles
 inline void simulate()
 {
-
-	staggeredGrid.updateExternalObjects(currBallCenter);
+	staggeredGrid.updateExternalObjects(currBallCenter, &bunnyV, &bunnyF);
 
 	// 1. update velocities
 	staggeredGrid.advectVelocities();
@@ -92,6 +99,37 @@ inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::
 	}
 }
 
+inline void createBall(Eigen::MatrixXd& ballV, Eigen::MatrixXi& ballF)
+{
+   	igl::read_triangle_mesh("../data/sphere.obj", ballV, ballF);
+
+   	// Display sphere smaller than actual size to account for the particle's large size
+   	Eigen::AlignedBox3d sphereBoundaries;
+   	sphereBoundaries.extend(initialBallPosition - Eigen::Vector3d::Constant(ballRadius - 0.5));
+   	sphereBoundaries.extend(initialBallPosition + Eigen::Vector3d::Constant(ballRadius - 0.5));
+   	transformVertices(ballV, sphereBoundaries);
+}
+
+inline void createBunny(Eigen::MatrixXd& bunnyV, Eigen::MatrixXi bunnyF)
+{
+	igl::read_triangle_mesh("../data/bunny.off", bunnyV, bunnyF);
+
+	// Find dimensions of bunny
+	Eigen::MatrixXd boundingV;
+	Eigen::MatrixXi boundingF;
+	igl::bounding_box(bunnyV, boundingV, boundingF);
+	Eigen::AlignedBox3d defaultBox;
+	createAlignedBox(boundingV, defaultBox);
+
+	// Scale bunny to set size
+	double scale = bunnyHalfLengths / (defaultBox.sizes()(0) / 2.0);
+	double xHalfLen = bunnyHalfLengths;
+	double yHalfLen = defaultBox.sizes()(1) * scale / 2;
+	double zHalfLen = defaultBox.sizes()(2) * scale / 2;
+	//Eigen::Vector3d minCorner = initialBunnyPosition - ;
+	Eigen::Vector3d maxCorner;
+}
+
 // Must be called first
 inline void simulation_setup(int argc, char** argv)
 {
@@ -109,16 +147,15 @@ inline void simulation_setup(int argc, char** argv)
 	// Add sphere
 	if (ball)
 	{
-		currBallCenter = initialBallPosition;
-		igl::read_triangle_mesh("../data/sphere.obj", ballV, ballF);
-
-		// Display sphere smaller than actual size to account for the particle's large size
-		Eigen::AlignedBox3d sphereBoundaries;
-		sphereBoundaries.extend(initialBallPosition - Eigen::Vector3d::Constant(ballRadius - 0.5));
-		sphereBoundaries.extend(initialBallPosition + Eigen::Vector3d::Constant(ballRadius - 0.5));
-		transformVertices(ballV, sphereBoundaries);
-
+		currBallCenter = initialBallPosition.transpose();
+		createBall(ballV, ballF);
 		ballId = Visualize::addObjectToScene(ballV, ballF, orange);
+	}
+	if (bunny)
+	{
+		currBunnyCenter = initialBunnyPosition.transpose();
+		createBunny(bunnyV, bunnyF);
+		bunnyId = Visualize::addObjectToScene(bunnyV, bunnyF, orange);
 	}
 
 	Visualize::viewer().selected_data_index = Visualize::viewer().mesh_index(boxId);
