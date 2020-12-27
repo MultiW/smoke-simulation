@@ -162,7 +162,7 @@ void StaggeredGrid::initializeVelocities()
 	//this->uGrid.setRandomValues(0, this->getCellSize());
 	//this->vGrid.setRandomValues(-this->getCellSize(), this->getCellSize());
 	//this->wGrid.setRandomValues(-this->getCellSize(), this->getCellSize());
-	double rand = 40;
+	double rand = 60;
 	this->vGrid.setRandomValues(-rand, rand);
 	this->uGrid.setRandomValues(-rand, rand);
 	this->wGrid.setRandomValues(-rand, rand);
