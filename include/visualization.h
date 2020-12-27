@@ -19,6 +19,8 @@ namespace Visualize {
 	int addPointsToScene(const Eigen::MatrixXd& points, const Eigen::RowVector3d& color);
 	void updatePoints(int dataId, const Eigen::MatrixXd& V, const Eigen::RowVector3d& color);
 	void updateObject(int dataId, const Eigen::MatrixXd& V);
+
+	void updateParticleMeshes(const Eigen::MatrixXd& points);
 }
 
 #endif

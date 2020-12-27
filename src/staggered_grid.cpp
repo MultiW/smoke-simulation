@@ -279,7 +279,7 @@ void StaggeredGrid::advectPosition(Eigen::MatrixXd& q) {
 				nextPoint = center + distance * ballRadius;
 			}
 		}
-		else if (bunny) {
+		if (bunny) {
 			Eigen::VectorXd distances, closestFaces;
 			Eigen::MatrixXd closestPoints, closestNormals;
 			igl::signed_distance(nextPoint, *bunnyV, *bunnyF, 
@@ -308,7 +308,7 @@ void StaggeredGrid::getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVec
 			velocity = velocity - 2 * (velocity.dot(dist)) * dist;
 		}		
 	}
-	else if (bunny) {
+	if (bunny) {
 		Eigen::VectorXd distances, closestFaces;
 		Eigen::MatrixXd closestPoints, closestNormals;
 		igl::signed_distance(point, *bunnyV, *bunnyF,

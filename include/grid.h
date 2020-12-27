@@ -36,6 +36,7 @@ public:
 	* Get the trilinear interpolation value of the point from the enclosing cube's values.
 	*/
 	double interpolatePoint(const Eigen::RowVector3d point);
+	double sharpInterpolatePoint(const Eigen::RowVector3d point);
 
 	// sorted x, y, z values of the grid
 	std::vector<double> const& x();
@@ -44,7 +45,6 @@ public:
 
 	// Returns the value of the identified point. Returns value of the nearest point if out of bounds
 	double safeGet(int i, int j, int k);
-
 	// Add to the value of the given point. Do nothing if given indices are out of bounds
 	void safeAdd(int i, int j, int k, double value);
 

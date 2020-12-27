@@ -42,58 +42,9 @@ void Grid::setWorldPoints(const Eigen::MatrixXd& points)
 	this->points = points;
 }
 
-void Grid::setPointValues(const Eigen::VectorXd& newValues)
-{
-	Eigen::Vector3d gridIdx;
-	for (int i = 0; i < newValues.rows(); i++)
-	{
-		gridIdx = mapTo3d(i, this->size(0), this->size(1), this->size(2));
-		this->grid(gridIdx(0), gridIdx(1), gridIdx(2)).value = newValues(i);
-	}
-}
-
-double Grid::interpolatePoint(const Eigen::RowVector3d point)
-{
-	int xi, yi, zi; // cell in which point is located
-	int x, y, z; // distance from corner of box to point
-
-	// get coordinates to cell surrounding current point
-	xi = getBinIdx(this->_x, this->cellSize, point(0));
-	yi = getBinIdx(this->_y, this->cellSize, point(1));
-	zi = getBinIdx(this->_z, this->cellSize, point(2));
-
-	x = (point(0) - this->grid(xi, yi, zi).worldPoint(0)) / this->cellSize;
-	y = (point(1) - this->grid(xi, yi, zi).worldPoint(1)) / this->cellSize;
-	z = (point(2) - this->grid(xi, yi, zi).worldPoint(2)) / this->cellSize;
-
-	// trilinear interpolation from all corners of current cell
-	return this->safeGet(xi, yi, zi) * (1 - x) * (1 - y) * (1 - z)
-		+ this->safeGet(xi + 1, yi, zi) * x * (1 - y) * (1 - z)
-		+ this->safeGet(xi, yi + 1, zi) * (1 - x) * y * (1 - z)
-		+ this->safeGet(xi, yi, zi + 1) * (1 - x) * (1 - y) * z
-		+ this->safeGet(xi + 1, yi, zi + 1) * x * (1 - y) * z
-		+ this->safeGet(xi, yi + 1, zi + 1) * (1 - x) * y * z
-		+ this->safeGet(xi + 1, yi + 1, zi) * x * y * (1 - z)
-		+ this->safeGet(xi + 1, yi + 1, zi + 1) * x * y * z;
-}
-
-double Grid::safeGet(int i, int j, int k)
-{
-	// clamp i, j, k to the range.
-	i = std::min(std::max(i, 0), (int) this->size(0) - 1);
-	j = std::min(std::max(j, 0), (int) this->size(1) - 1);
-	k = std::min(std::max(k, 0), (int) this->size(2) - 1);
-	return this->grid(i, j, k).value;
-}
-
-void Grid::safeAdd(int i, int j, int k, double value)
-{
-	if (this->isInBounds(i, j, k))
-	{
-		this->grid(i, j, k).value += value;
-	}
-}
-
+// ========================
+// == Value manipulation ==
+// ========================
 void Grid::clearValues()
 {
 	this->setConstantValue(0);
@@ -125,6 +76,72 @@ void Grid::setRandomValues(double min, double max)
 				this->grid(i, j, k).value = getRand(min, max);;
 			}
 		}
+	}
+}
+
+void Grid::setPointValues(const Eigen::VectorXd& newValues)
+{
+	Eigen::Vector3d gridIdx;
+	for (int i = 0; i < newValues.rows(); i++)
+	{
+		gridIdx = mapTo3d(i, this->size(0), this->size(1), this->size(2));
+		this->grid(gridIdx(0), gridIdx(1), gridIdx(2)).value = newValues(i);
+	}
+}
+
+
+// =====================
+// === Interpolation ===
+// =====================
+double Grid::interpolatePoint(const Eigen::RowVector3d point)
+{
+	int xi, yi, zi; // cell in which point is located
+	int x, y, z; // distance from corner of box to point
+
+	// get coordinates to cell surrounding current point
+	xi = getBinIdx(this->_x, this->cellSize, point(0));
+	yi = getBinIdx(this->_y, this->cellSize, point(1));
+	zi = getBinIdx(this->_z, this->cellSize, point(2));
+
+	x = (point(0) - this->grid(xi, yi, zi).worldPoint(0)) / this->cellSize;
+	y = (point(1) - this->grid(xi, yi, zi).worldPoint(1)) / this->cellSize;
+	z = (point(2) - this->grid(xi, yi, zi).worldPoint(2)) / this->cellSize;
+
+	// trilinear interpolation from all corners of current cell
+	return this->safeGet(xi, yi, zi) * (1 - x) * (1 - y) * (1 - z)
+		+ this->safeGet(xi + 1, yi, zi) * x * (1 - y) * (1 - z)
+		+ this->safeGet(xi, yi + 1, zi) * (1 - x) * y * (1 - z)
+		+ this->safeGet(xi, yi, zi + 1) * (1 - x) * (1 - y) * z
+		+ this->safeGet(xi + 1, yi, zi + 1) * x * (1 - y) * z
+		+ this->safeGet(xi, yi + 1, zi + 1) * (1 - x) * y * z
+		+ this->safeGet(xi + 1, yi + 1, zi) * x * y * (1 - z)
+		+ this->safeGet(xi + 1, yi + 1, zi + 1) * x * y * z;
+}
+
+double Grid::sharpInterpolatePoint(const Eigen::RowVector3d point)
+{
+	// TODO
+	return -1;
+}
+
+
+// ===============================
+// === Safe getter and setters ===
+// ===============================
+double Grid::safeGet(int i, int j, int k)
+{
+	// clamp i, j, k to the range.
+	i = std::min(std::max(i, 0), (int) this->size(0) - 1);
+	j = std::min(std::max(j, 0), (int) this->size(1) - 1);
+	k = std::min(std::max(k, 0), (int) this->size(2) - 1);
+	return this->grid(i, j, k).value;
+}
+
+void Grid::safeAdd(int i, int j, int k, double value)
+{
+	if (this->isInBounds(i, j, k))
+	{
+		this->grid(i, j, k).value += value;
 	}
 }
 
@@ -230,7 +247,6 @@ void Grid::setXYPlane(int z, double value)
 		}
 	}
 }
-
 
 // ================================
 // === List3d Wrapper Functions ===

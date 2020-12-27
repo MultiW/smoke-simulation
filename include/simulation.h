@@ -105,8 +105,8 @@ inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::
 
 	// Create smoke particles inside box
 	q.resize(PARTICLE_COUNT, 3);
-	Eigen::Vector3d bottomLeftFloor = SMOKE_PARTICLE_BOUNDS.corner(Eigen::AlignedBox3d::BottomLeftFloor);
-	Eigen::Vector3d topRightCeil = SMOKE_PARTICLE_BOUNDS.corner(Eigen::AlignedBox3d::TopRightCeil);
+	Eigen::Vector3d bottomLeftFloor = SMOKE_BOUNDS.corner(Eigen::AlignedBox3d::BottomLeftFloor);
+	Eigen::Vector3d topRightCeil = SMOKE_BOUNDS.corner(Eigen::AlignedBox3d::TopRightCeil);
 	for (int i = 0; i < PARTICLE_COUNT; i++)
 	{
 		q(i, 0) = getRand(bottomLeftFloor(0), topRightCeil(0));

@@ -17,9 +17,9 @@ const Eigen::AlignedBox3d SMOKE_BOX(Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(bo
 // - propertions as SMOKE_BOX
 const Eigen::Vector3i GRID_DIM(21, 21, 21);
 
-// smoke particle count
+// smoke particle count and initial location
 const int PARTICLE_COUNT = 50;
-const Eigen::AlignedBox3d SMOKE_PARTICLE_BOUNDS(Eigen::Vector3d(15, 15, 15), Eigen::Vector3d(18, 18, 18));
+const Eigen::AlignedBox3d SMOKE_BOUNDS(Eigen::Vector3d(15, 15, 15), Eigen::Vector3d(18, 18, 18));
 
 // buoyancy force variables
 const double FLUID_DENSITY = 2.0;
@@ -31,18 +31,21 @@ const double AMBIENT_TEMP = 0;
 const double ALPHA = 0.05; // how much particles sink
 const double BETA = 0.08; // how much particles float
 
-//const double ALPHA = 0.08; // how much particles sink
-//const double BETA = 0.97; // how much particles float
-
+// external objects
 const bool ball = false;
 const Eigen::Vector3d initialBallPosition(0, boxY / 2, boxZ / 2);
 const Eigen::RowVector3d ballVelocity(5, 0, 0);
 const double ballRadius = 3;
 
-const bool bunny = true;
+const bool bunny = false;
 const Eigen::Vector3d initialBunnyPosition(boxX / 2, boxY / 2, boxZ / 2);
 const Eigen::RowVector3d bunnyVelocity(5, 0, 0);
 const double bunnyHalfLength = 3; // of side in the x direction
+
+// particles
+// particle center must be at (0, 0, 0)
+const Eigen::AlignedBox3d PARTICLE_SIZE(Eigen::Vector3d(-0.1, -0.1, -0.1), Eigen::Vector3d(0.1, 0.1, 0.1));
+const bool useParticles = false;
 
 #endif // !CONSTANTS_H
 
