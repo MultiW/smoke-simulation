@@ -34,9 +34,16 @@ StaggeredGrid staggeredGrid;
 // Viewer data ids
 int smokeId;
 int boxId;
+int ballId;
+
+// Simulation state
+Eigen::MatrixXd q;
+Eigen::MatrixXd ballV;
+Eigen::MatrixXi ballF;
+Eigen::RowVector3d currBallCenter;
 
 // Update location and velocity of smoke particles
-inline void simulate(Eigen::MatrixXd& q, double t)
+inline void simulate()
 {
 	// 1. update velocities
 	staggeredGrid.advectVelocities();
@@ -50,7 +57,21 @@ inline void simulate(Eigen::MatrixXd& q, double t)
 	staggeredGrid.advectPosition(q);
 }
 
-inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::MatrixXd& q, Eigen::AlignedBox3d& boundary)
+inline void simulateBall()
+{
+	Eigen::RowVector3d ballMaxCorner = currBallCenter + Eigen::RowVector3d::Constant(ballRadius) + dt * ballVelocity;
+	Eigen::RowVector3d ballMinCorner = currBallCenter - Eigen::RowVector3d::Constant(ballRadius) + dt * ballVelocity;
+	if (isInBox(SMOKE_BOX, ballMinCorner) && isInBox(SMOKE_BOX, ballMaxCorner))
+	{
+		for (int i = 0; i < ballV.rows(); i++)
+		{
+			ballV.row(i) += dt * ballVelocity;
+		}
+		currBallCenter += dt * ballVelocity;
+	}
+}
+
+inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::MatrixXd& q, const Eigen::AlignedBox3d& boundary)
 {
 	// Create box
 	igl::read_triangle_mesh("../data/box.obj", boxV, boxF);
@@ -59,8 +80,8 @@ inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::
 
 	// Create smoke particles inside box
 	q.resize(PARTICLE_COUNT, 3);
-	Eigen::Vector3d bottomLeftFloor = SMOKE_BOUNDS.corner(Eigen::AlignedBox3d::BottomLeftFloor);
-	Eigen::Vector3d topRightCeil = SMOKE_BOUNDS.corner(Eigen::AlignedBox3d::TopRightCeil);
+	Eigen::Vector3d bottomLeftFloor = SMOKE_PARTICLE_BOUNDS.corner(Eigen::AlignedBox3d::BottomLeftFloor);
+	Eigen::Vector3d topRightCeil = SMOKE_PARTICLE_BOUNDS.corner(Eigen::AlignedBox3d::TopRightCeil);
 	for (int i = 0; i < PARTICLE_COUNT; i++)
 	{
 		q(i, 0) = getRand(bottomLeftFloor(0), topRightCeil(0));
@@ -70,23 +91,34 @@ inline void createSmokeBox(Eigen::MatrixXd& boxV, Eigen::MatrixXi& boxF, Eigen::
 }
 
 // Must be called first
-inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q)
+inline void simulation_setup(int argc, char** argv)
 {
-	// Define boundaries of box
-	Eigen::AlignedBox3d smokeBox;
-	smokeBox.extend(Eigen::Vector3d(0, 0, 0));
-	smokeBox.extend(BOX_DIM.cast<double>());
-
 	// Add box
 	Eigen::MatrixXd boxV;
 	Eigen::MatrixXi boxF;
-	createSmokeBox(boxV, boxF, q, smokeBox);
+	createSmokeBox(boxV, boxF, q, SMOKE_BOX);
 	boxId = Visualize::addObjectToScene(boxV, boxF, orange);
 	Visualize::setInvisible(boxId, true);
 
 	smokeId = Visualize::addPointsToScene(q, white);
 
-	staggeredGrid = StaggeredGrid(q, smokeBox, GRID_DIM, smokeBox.sizes()(0) / (GRID_DIM(0) - 1.0));
+	staggeredGrid = StaggeredGrid(q, SMOKE_BOX, GRID_DIM, SMOKE_BOX.sizes()(0) / (GRID_DIM(0) - 1.0));
+
+	// Add sphere
+	if (ball)
+	{
+		currBallCenter = initialBallPosition;
+		igl::read_triangle_mesh("../data/sphere.obj", ballV, ballF);
+
+		Eigen::AlignedBox3d sphereBoundaries;
+		sphereBoundaries.extend(initialBallPosition - Eigen::Vector3d::Constant(ballRadius));
+		sphereBoundaries.extend(initialBallPosition + Eigen::Vector3d::Constant(ballRadius));
+		transformVertices(ballV, sphereBoundaries);
+
+		ballId = Visualize::addObjectToScene(ballV, ballF, orange);
+	}
+
+	Visualize::viewer().core().align_camera_center(ballV);
 
 	////// TODO: DELETE. Testing if initialization of staggered grid points is correct
 	//Eigen::MatrixXd u, v, w, p;
@@ -97,9 +129,10 @@ inline void simulation_setup(int argc, char** argv, Eigen::MatrixXd& q)
 	//Visualize::addPointsToScene(p, red);
 }
 
-inline void draw(Eigen::Ref<const Eigen::MatrixXd> q, double t)
+inline void draw()
 {
 	Visualize::updatePoints(smokeId, q, white);
+	Visualize::updateObject(ballId, ballV);
 }
 
 #endif

@@ -13,11 +13,12 @@
 */
 namespace Visualize {
 	igl::opengl::glfw::Viewer& viewer();
-	void setup(const Eigen::MatrixXd& q);
+	void setup();
 	int addObjectToScene(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F, const Eigen::RowVector3d& color);
 	void setInvisible(int dataId, bool status);
 	int addPointsToScene(const Eigen::MatrixXd& points, const Eigen::RowVector3d& color);
 	void updatePoints(int dataId, const Eigen::MatrixXd& V, const Eigen::RowVector3d& color);
+	void updateObject(int dataId, const Eigen::MatrixXd& V);
 }
 
 #endif

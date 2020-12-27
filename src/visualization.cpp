@@ -18,7 +18,7 @@ void draw_main_viewer_menu()
 	Visualize::menu.draw_viewer_menu();
 }
 
-void Visualize::setup(const Eigen::MatrixXd& q)
+void Visualize::setup()
 {
 	// Set up menu
 	g_viewer.plugins.push_back(&menu);
@@ -44,6 +44,11 @@ int Visualize::addObjectToScene(const Eigen::MatrixXd& V, const Eigen::MatrixXi&
 void Visualize::updatePoints(int dataId, const Eigen::MatrixXd& V, const Eigen::RowVector3d& color)
 {
 	g_viewer.data(dataId).set_points(V, color);
+}
+
+void Visualize::updateObject(int dataId, const Eigen::MatrixXd& V)
+{
+	g_viewer.data(dataId).set_vertices(V);
 }
 
 void Visualize::setInvisible(int dataId, bool status)
