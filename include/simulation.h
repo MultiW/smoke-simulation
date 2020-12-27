@@ -5,7 +5,6 @@
 
 #include "grid_util.h"
 #include "util.h"
-#include "external_forces.h"
 #include "staggered_grid.h"
 #include "constants.h"
 #include "util.h"
