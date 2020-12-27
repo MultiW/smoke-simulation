@@ -33,11 +33,11 @@ const double BETA = 0.08; // how much particles float
 
 // external objects
 const bool ball = false;
-const Eigen::Vector3d initialBallPosition(0, boxY / 2, boxZ / 2);
+const Eigen::Vector3d initialBallPosition(boxX / 2, boxY / 2, boxZ / 2);
 const Eigen::RowVector3d ballVelocity(5, 0, 0);
 const double ballRadius = 3;
 
-const bool bunny = false;
+const bool bunny = true;
 const Eigen::Vector3d initialBunnyPosition(boxX / 2, boxY / 2, boxZ / 2);
 const Eigen::RowVector3d bunnyVelocity(5, 0, 0);
 const double bunnyHalfLength = 3; // of side in the x direction

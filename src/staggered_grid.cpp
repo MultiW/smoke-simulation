@@ -278,20 +278,32 @@ void StaggeredGrid::advectPosition(Eigen::MatrixXd& q) {
 				distance.normalize();
 				nextPoint = center + distance * ballRadius;
 			}
-		}
-		if (bunny) {
-			Eigen::VectorXd distances, closestFaces;
-			Eigen::MatrixXd closestPoints, closestNormals;
-			igl::signed_distance(nextPoint, *bunnyV, *bunnyF, 
-				igl::SIGNED_DISTANCE_TYPE_FAST_WINDING_NUMBER, std::numeric_limits<double>::min(), std::numeric_limits<double>::max(), 
-				distances, closestFaces, closestPoints, closestNormals);
-			if (distances(0) < 0) {
-				nextPoint = closestPoints.row(0);
-			}
-		}
-
+		} 
+		
 		q.row(i) = nextPoint;
 	}
+
+	if (bunny) {
+		Eigen::VectorXd distances, closestFaces;
+		Eigen::MatrixXd closestPoints, closestNormals;
+		igl::signed_distance(q, *bunnyV, *bunnyF,
+			igl::SIGNED_DISTANCE_TYPE_FAST_WINDING_NUMBER, std::numeric_limits<double>::min(), std::numeric_limits<double>::max(),
+			distances, closestFaces, closestPoints, closestNormals);
+		//std::cout << distances(0) << "\n";
+		//std::cout << "-------\n";
+		//if (distances(0) < 0) {
+		//	std::cout << "this isnt printing\n";
+		//	nextPoint = closestPoints.row(0);
+		//}
+
+		for (int i = 0; i < q.rows(); i++) {
+			if (distances(i) < 0 + 2) {
+				q.row(i) = closestPoints.row(i);
+			}
+		}
+	}
+
+
 }
 
 void StaggeredGrid::getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVector3d &point) {
@@ -307,16 +319,16 @@ void StaggeredGrid::getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVec
 			dist.normalize();
 			velocity = velocity - 2 * (velocity.dot(dist)) * dist;
 		}		
-	}
-	if (bunny) {
+	} 
+	else if (bunny) {
 		Eigen::VectorXd distances, closestFaces;
 		Eigen::MatrixXd closestPoints, closestNormals;
 		igl::signed_distance(point, *bunnyV, *bunnyF,
-			igl::SIGNED_DISTANCE_TYPE_FAST_WINDING_NUMBER, std::numeric_limits<double>::min(), std::numeric_limits<double>::max(),
+			igl::SIGNED_DISTANCE_TYPE_PSEUDONORMAL, std::numeric_limits<double>::min(), std::numeric_limits<double>::max(),
 			distances, closestFaces, closestPoints, closestNormals);
-		if (distances(0) <= 0) {
-			velocity = velocity - 2 * (velocity.dot(closestPoints.row(0))) * closestPoints.row(0);
-		}
+		//if (distances(0) <= 0) {
+		//	velocity = velocity - 2 * (velocity.dot(closestPoints.row(0))) * closestPoints.row(0);
+		//}
 	}
 	
 }
