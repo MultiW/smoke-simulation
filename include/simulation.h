@@ -211,7 +211,7 @@ inline void simulation_setup(int argc, char** argv)
 	if (useParticles)
 	{
 		// Create all particles
-		//initializeParticles();
+		initializeParticles();
 		updateParticleMeshes();
 		smokeId = Visualize::addObjectToScene(particlesV, particlesF, white);
 	}
