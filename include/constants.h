@@ -45,7 +45,7 @@ const double bunnyHalfLength = 3; // of side in the x direction
 // particles
 // particle center must be at (0, 0, 0)
 const Eigen::AlignedBox3d PARTICLE_SIZE(Eigen::Vector3d(-0.1, -0.1, -0.1), Eigen::Vector3d(0.1, 0.1, 0.1));
-const bool useParticles = false;
+const bool useParticles = true;
 
 #endif // !CONSTANTS_H
 
