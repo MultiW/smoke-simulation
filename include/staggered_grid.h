@@ -93,7 +93,7 @@ private:
 	void advectVelocity(Grid& grid);
 	void enforceBoundaries(const Eigen::RowVector3d& point, Eigen::RowVector3d& nextPoint);
 	void getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVector3d &point);
-
+	void getSmokePointVelocity(Eigen::RowVector3d& velocity, Eigen::RowVector3d& point, Eigen::VectorXd distances, Eigen::MatrixXd& closestNormals, int index);
 	// Pressure projection
 	void updateGridVelocities();
 	void computePressure(Eigen::VectorXd p);
