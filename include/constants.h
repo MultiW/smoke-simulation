@@ -34,7 +34,7 @@ const double BETA = 0.08; // how much particles float
 //const double ALPHA = 0.08; // how much particles sink
 //const double BETA = 0.97; // how much particles float
 
-const bool ball = true;
+const bool ball = false;
 const Eigen::Vector3d initialBallPosition(0, boxY / 2, boxZ / 2);
 const Eigen::RowVector3d ballVelocity(5, 0, 0);
 const double ballRadius = 3;
