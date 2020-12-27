@@ -128,7 +128,7 @@ inline void initializeBall()
 
 inline void initializeBunny()
 {
-	igl::read_triangle_mesh("../data/bunny.off", bunnyV, bunnyF);
+	igl::read_triangle_mesh("../data/coarser_bunny.obj", bunnyV, bunnyF);
 
 	// Find dimensions of bunny
 	Eigen::MatrixXd boundingV;
