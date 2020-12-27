@@ -44,6 +44,9 @@ Eigen::RowVector3d currBallCenter;
 // Update location and velocity of smoke particles
 inline void simulate()
 {
+
+	staggeredGrid.updateExternalObjects(currBallCenter);
+
 	// 1. update velocities
 	staggeredGrid.advectVelocities();
 	staggeredGrid.applyExternalForces();

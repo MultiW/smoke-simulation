@@ -19,7 +19,7 @@ const Eigen::Vector3i GRID_DIM(21, 21, 21);
 
 // smoke particle count
 const int PARTICLE_COUNT = 50;
-const Eigen::AlignedBox3d SMOKE_PARTICLE_BOUNDS(Eigen::Vector3d(2, 2, 2), Eigen::Vector3d(6, 6, 6));
+const Eigen::AlignedBox3d SMOKE_PARTICLE_BOUNDS(Eigen::Vector3d(15, 15, 15), Eigen::Vector3d(18, 18, 18));
 
 // buoyancy force variables
 const double FLUID_DENSITY = 2.0;
@@ -36,7 +36,7 @@ const double BETA = 0.08; // how much particles float
 
 const bool ball = true;
 const Eigen::Vector3d initialBallPosition(boxX/2, boxY/2, boxZ/2);
-const Eigen::RowVector3d ballVelocity(100, 0, 0);
+const Eigen::RowVector3d ballVelocity(5, 0, 0);
 const double ballRadius = 3;
 
 #endif // !CONSTANTS_H

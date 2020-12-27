@@ -40,6 +40,9 @@ public:
 	Grid densityGrid; // fluid density
 	// -----------------------------------------
 
+	Eigen::RowVector3d ballCenter;
+
+
 	StaggeredGrid();
 	StaggeredGrid(const Eigen::MatrixXd& q, const Eigen::AlignedBox3d& box, const Eigen::Vector3i& dim, double cellSize);
 
@@ -61,6 +64,10 @@ public:
 	//Vorticity Confinement
 	void vorticityConfinement(double epislon);
 	void centerVelandNorm(double denom);
+
+
+	//for balls and bunnies
+	void updateExternalObjects(Eigen::RowVector3d ballCenter);
 
 	// For testing
 	void getGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p);
