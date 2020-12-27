@@ -7,11 +7,15 @@
 #include <Eigen/IterativeLinearSolvers>
 
 #include <igl/grid.h>
+#include <igl/signed_distance.h>
+
 
 #include <stdio.h>
 #include <iostream>
 #include <algorithm>
 #include <set>
+
+
 
 typedef Eigen::Triplet<double> T;
 
@@ -276,8 +280,14 @@ void StaggeredGrid::advectPosition(Eigen::MatrixXd& q) {
 			}
 		}
 		else if (bunny) {
-			//check if point is in the bunny
-			//if so, move it into the surface
+			Eigen::VectorXd distances, closestFaces;
+			Eigen::MatrixXd closestPoints, closestNormals;
+			igl::signed_distance(nextPoint, *bunnyV, *bunnyF, 
+				igl::SIGNED_DISTANCE_TYPE_FAST_WINDING_NUMBER, std::numeric_limits<double>::min(), std::numeric_limits<double>::max(), 
+				distances, closestFaces, closestPoints, closestNormals);
+			if (distances(0) < 0) {
+				nextPoint = closestPoints.row(0);
+			}
 		}
 
 		q.row(i) = nextPoint;
@@ -299,9 +309,14 @@ void StaggeredGrid::getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVec
 		}		
 	}
 	else if (bunny) {
-		//check if point is on the bunny
-
-		//if so, move it to the side
+		Eigen::VectorXd distances, closestFaces;
+		Eigen::MatrixXd closestPoints, closestNormals;
+		igl::signed_distance(point, *bunnyV, *bunnyF,
+			igl::SIGNED_DISTANCE_TYPE_FAST_WINDING_NUMBER, std::numeric_limits<double>::min(), std::numeric_limits<double>::max(),
+			distances, closestFaces, closestPoints, closestNormals);
+		if (distances(0) <= 0) {
+			velocity = velocity - 2 * (velocity.dot(closestPoints.row(0))) * closestPoints.row(0);
+		}
 	}
 	
 }
