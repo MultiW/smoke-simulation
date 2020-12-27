@@ -58,7 +58,6 @@ public:
 	*/
 	void applyPressureProjections();
 
-
 	//Vorticity Confinement
 	void vorticityConfinement(double epislon);
 	void centerVelandNorm(double denom);

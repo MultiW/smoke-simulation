@@ -44,3 +44,5 @@ int getBinIdx(std::vector<double> binBorders, double binSize, double currLocatio
 
 // For a point in world-space on the border of the grid, return the index of the grid point
 int getPointIdx(std::vector<double>& sortedPoints, double interval, double currPoint, double epsilon);
+
+bool isInBox(const Eigen::AlignedBox3d& box, Eigen::Vector3d point);

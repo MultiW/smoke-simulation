@@ -120,3 +120,13 @@ int getPointIdx(std::vector<double> &sortedPoints, double interval, double currP
 
 	return borderIdx;
 }
+
+bool isInBox(const Eigen::AlignedBox3d& box, Eigen::Vector3d point)
+{
+	Eigen::Vector3d minCorner = box.corner(Eigen::AlignedBox3d::BottomLeftFloor);
+	Eigen::Vector3d maxCorner = box.corner(Eigen::AlignedBox3d::TopRightCeil);
+	return
+		point(0) >= minCorner(0) && point(0) <= maxCorner(0) &&
+		point(1) >= minCorner(1) && point(1) <= maxCorner(1) &&
+		point(2) >= minCorner(2) && point(2) <= maxCorner(2);
+}
