@@ -47,6 +47,11 @@ Eigen::MatrixXi ballF;
 Eigen::RowVector3d currBunnyCenter;
 Eigen::MatrixXd bunnyV;
 Eigen::MatrixXi bunnyF;
+
+Eigen::MatrixXd particleTemplateV;
+Eigen::MatrixXi particleTemplateF;
+Eigen::MatrixXd particlesV;
+Eigen::MatrixXi particlesF;
 // ====
 
 Eigen::RowVector3d bunnyBoxHalfLengths;
@@ -147,6 +152,38 @@ inline void initializeBunny()
 	transformVertices(bunnyV, newBox);
 }
 
+inline void initializeParticles()
+{
+	// Create template particle
+	igl::readOBJ("../data/particle.obj", particleTemplateV, particleTemplateF);
+	transformVertices(particleTemplateV, PARTICLE_SIZE);
+
+	int stepV = particleTemplateV.rows();
+	int stepF = particleTemplateF.rows();
+
+	particlesV.resize(PARTICLE_COUNT * stepV, 3);
+	particlesV = particleTemplateV.replicate(PARTICLE_COUNT, 1);
+
+	Eigen::MatrixXi ones;
+	ones.resize(particleTemplateF.rows(), particleTemplateF.cols());
+	ones.setOnes();
+	particlesF.resize(PARTICLE_COUNT * stepF, 3);
+	for (int i = 0; i < PARTICLE_COUNT; i++)
+	{
+		particlesF.block(i * stepF, 0, stepF, 3) = particleTemplateF + ones * (i * stepF);
+	}
+}
+
+inline void updateParticleMeshes()
+{
+	for (int i = 0; i < q.rows(); i++)
+	{
+		// translate template particle to appropriate location
+		particlesV.block(i * particleTemplateV.rows(), 0, particleTemplateV.rows(), 3) 
+			= particleTemplateV + q.row(i).replicate(particleTemplateV.rows(), 1);
+	}
+}
+
 // Must be called first
 inline void simulation_setup(int argc, char** argv)
 {
@@ -166,14 +203,26 @@ inline void simulation_setup(int argc, char** argv)
 		bunnyId = Visualize::addObjectToScene(bunnyV, bunnyF, orange);
 	}
 
-	// Add box
+	// Add smoke and box
 	Eigen::MatrixXd boxV;
 	Eigen::MatrixXi boxF;
 	createSmokeBox(boxV, boxF, q, SMOKE_BOX);
+
+	if (useParticles)
+	{
+		// Create all particles
+		//initializeParticles();
+		updateParticleMeshes();
+		smokeId = Visualize::addObjectToScene(particlesV, particlesF, white);
+	}
+	else
+	{
+		smokeId = Visualize::addPointsToScene(q, white);
+	}
+
+	// Create box last to set camera focus on the box
 	boxId = Visualize::addObjectToScene(boxV, boxF, orange);
 	Visualize::setInvisible(boxId, true);
-
-	smokeId = Visualize::addPointsToScene(q, white);
 
 	staggeredGrid = StaggeredGrid(q, SMOKE_BOX, GRID_DIM, SMOKE_BOX.sizes()(0) / (GRID_DIM(0) - 1.0));
 
@@ -188,11 +237,21 @@ inline void simulation_setup(int argc, char** argv)
 
 inline void draw()
 {
-	Visualize::updatePoints(smokeId, q, white);
+	if (useParticles)
+	{
+		updateParticleMeshes();
+		Visualize::updateObject(smokeId, particlesV);
+	}
+	else
+	{
+		Visualize::updatePoints(smokeId, q, white);
+	}
+
 	if (ball)
 	{
 		Visualize::updateObject(ballId, ballV);
 	}
+	
 	if (bunny)
 	{
 		Visualize::updateObject(bunnyId, bunnyV);
