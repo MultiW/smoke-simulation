@@ -7,7 +7,7 @@
 const double dt = 0.001;
 
 // dimensions of the smoke box
-const double boxX = 40;
+const double boxX = 20;
 const double boxY = 20;
 const double boxZ = 20;
 const Eigen::AlignedBox3d SMOKE_BOX(Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(boxX, boxY, boxZ));
@@ -15,11 +15,11 @@ const Eigen::AlignedBox3d SMOKE_BOX(Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(bo
 // dimensions of staggered grid to compute pressure
 // - NOTE: GRID_DIM - 1 (along all dimensions) must have the same 
 // - propertions as SMOKE_BOX
-const Eigen::Vector3i GRID_DIM(21, 11, 11);
+const Eigen::Vector3i GRID_DIM(21, 21, 21);
 
 // smoke particle count
 const int PARTICLE_COUNT = 50;
-const Eigen::AlignedBox3d SMOKE_PARTICLE_BOUNDS(Eigen::Vector3d(5, 5, 5), Eigen::Vector3d(8, 8, 8));
+const Eigen::AlignedBox3d SMOKE_PARTICLE_BOUNDS(Eigen::Vector3d(2, 2, 2), Eigen::Vector3d(6, 6, 6));
 
 // buoyancy force variables
 const double FLUID_DENSITY = 2.0;
