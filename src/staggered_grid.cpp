@@ -269,7 +269,7 @@ void StaggeredGrid::advectPosition(Eigen::MatrixXd &q) {
 
 		if (ball) {
 			Eigen::Vector3d center = initialBallPosition;
-			Eigen::Vector3d distance = (nextPoint - center);
+			Eigen::Vector3d distance = nextPoint.transpose() - center;
 			if (distance.norm() < ballRadius) {
 				distance.normalize();
 				nextPoint = center + distance * ballRadius;
@@ -287,7 +287,7 @@ void StaggeredGrid::getPointVelocity(Eigen::RowVector3d &velocity, Eigen::RowVec
 	
 	if (ball) {
 		Eigen::Vector3d center = initialBallPosition;
-		Eigen::Vector3d dist = center-point;
+		Eigen::RowVector3d dist = center.transpose() - point;
 		if (dist.norm() == ballRadius) {
 			//from https://gamedev.stackexchange.com/questions/150322/how-to-find-collision-reflection-vector-on-a-sphere
 			dist.normalize();
