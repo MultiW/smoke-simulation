@@ -57,6 +57,7 @@ public:
 
 	// Debugging
 	void dumpValues();
+	void dumpValues(int i, int j, int k);
 
 	// Wrapper functions for List3d class
     Point& operator()(size_t i, size_t j, size_t k);

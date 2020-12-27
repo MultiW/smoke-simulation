@@ -174,20 +174,23 @@ bool Grid::isPointInBounds(double x, double y, double z)
 // =================
 void Grid::dumpValues()
 {
-	printf("\n");
-	printf("\n");
+	printf("\nGrid dump:\n");
 	for (int i = 0; i < this->size(0); i++)
 	{
 		for (int j = 0; j < this->size(1); j++)
 		{
 			for (int k = 0; k < this->size(2); k++)
 			{
-				printf("%f  ", this->grid(i, j, k).value);
+				printf("%d,%d,%d:%f  ", i, j, k, this->grid(i, j, k).value);
 			}
 		}
 	}
-	printf("\n");
-	printf("\n");
+	printf("\n\n");
+}
+
+void Grid::dumpValues(int i, int j, int k)
+{
+	printf("\n%f  \n", this->grid(i, j, k).value);
 }
 
 // ====================================
