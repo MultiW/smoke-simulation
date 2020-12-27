@@ -112,15 +112,16 @@ inline void simulation_setup(int argc, char** argv)
 		currBallCenter = initialBallPosition;
 		igl::read_triangle_mesh("../data/sphere.obj", ballV, ballF);
 
+		// Display sphere smaller than actual size to account for the particle's large size
 		Eigen::AlignedBox3d sphereBoundaries;
-		sphereBoundaries.extend(initialBallPosition - Eigen::Vector3d::Constant(ballRadius));
-		sphereBoundaries.extend(initialBallPosition + Eigen::Vector3d::Constant(ballRadius));
+		sphereBoundaries.extend(initialBallPosition - Eigen::Vector3d::Constant(ballRadius - 0.5));
+		sphereBoundaries.extend(initialBallPosition + Eigen::Vector3d::Constant(ballRadius - 0.5));
 		transformVertices(ballV, sphereBoundaries);
 
 		ballId = Visualize::addObjectToScene(ballV, ballF, orange);
 	}
 
-	Visualize::viewer().core().align_camera_center(ballV);
+	Visualize::viewer().selected_data_index = Visualize::viewer().mesh_index(boxId);
 
 	////// TODO: DELETE. Testing if initialization of staggered grid points is correct
 	//Eigen::MatrixXd u, v, w, p;

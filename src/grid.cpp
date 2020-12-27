@@ -175,6 +175,7 @@ bool Grid::isPointInBounds(double x, double y, double z)
 void Grid::dumpValues()
 {
 	printf("\n");
+	printf("\n");
 	for (int i = 0; i < this->size(0); i++)
 	{
 		for (int j = 0; j < this->size(1); j++)
@@ -185,6 +186,7 @@ void Grid::dumpValues()
 			}
 		}
 	}
+	printf("\n");
 	printf("\n");
 }
 
