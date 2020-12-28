@@ -13,9 +13,6 @@ namespace Visualize
 	igl::opengl::glfw::Viewer g_viewer;
 	igl::opengl::glfw::imgui::ImGuiMenu menu;
 	bool firstDataUsed = false; // has first data been used
-
-	Eigen::MatrixXd particlesV;
-	Eigen::MatrixXi particlesF;
 }
 
 igl::opengl::glfw::Viewer& Visualize::viewer()
