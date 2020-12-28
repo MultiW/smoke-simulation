@@ -19,7 +19,10 @@ The cmake build system will attempt to find libigl according to environment vari
     cd libigl-example-project/
     git clone https://github.com/libigl/libigl.git
 
+C++11 or higher should be used.
+
 ## Compile
+_Note: this project was only tested on Windows 10_
 
 Compile this project using the standard cmake routine:
 
@@ -28,12 +31,12 @@ Compile this project using the standard cmake routine:
     cmake ..
     make
 
-This should find and build the dependencies and create a `example_bin` binary.
+This should find and build the dependencies and create a `smoke-simulation.exe` binary.
 
 ## Run
 
 From within the `build` directory just issue:
 
-    ./example
+    ./smoke-simulation.exe
 
-A glfw app should launch displaying a 3D cube.
+A glfw app should launch displaying the simulation.

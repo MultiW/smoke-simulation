@@ -73,9 +73,10 @@ void Visualize::updateObject(int dataId, const Eigen::MatrixXd& V)
 	g_viewer.data(dataId).set_vertices(V);
 }
 
-void Visualize::setInvisible(int dataId, bool status)
+void Visualize::setInvisible(int dataId)
 {
-	g_viewer.data(dataId).show_faces = !status;
-	// TODO: hide lines too
+	g_viewer.data(dataId).show_faces = false;
+	// Option to hide box outlines
+	// g_viewer.data(dataId).show_lines = false;
 }
 

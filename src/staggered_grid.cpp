@@ -44,9 +44,6 @@ StaggeredGrid::StaggeredGrid(
 	omegaVGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
 	omegaWGrid(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
 	omegaNormal(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
-	omegaGradU(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
-	omegaGradV(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
-	omegaGradW(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
 	vortConfU(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
 	vortConfV(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize)),
 	vortConfW(Grid(dim(0) - 1.0, dim(1) - 1.0, dim(2) - 1.0, cellSize))
@@ -67,9 +64,6 @@ StaggeredGrid::StaggeredGrid(
 	this->omegaVGrid.setWorldPoints(cellCenters);
 	this->omegaWGrid.setWorldPoints(cellCenters);
 	this->omegaNormal.setWorldPoints(cellCenters);
-	this->omegaGradU.setWorldPoints(cellCenters);
-	this->omegaGradV.setWorldPoints(cellCenters);
-	this->omegaGradW.setWorldPoints(cellCenters);
 	this->vortConfU.setWorldPoints(cellCenters);
 	this->vortConfV.setWorldPoints(cellCenters);
 	this->vortConfW.setWorldPoints(cellCenters);
@@ -88,7 +82,7 @@ void StaggeredGrid::advectVelocities()
 	advectVelocity(this->wGrid);
 }
 
-void StaggeredGrid::updateTemperatureAndDensity()
+void StaggeredGrid::advectTemperatureAndDensity()
 {
 	this->advectCenterValues(this->tempGrid);
 	this->advectCenterValues(this->densityGrid);
@@ -109,11 +103,6 @@ void StaggeredGrid::applyPressureProjections() {
 	this->updateGridVelocities();
 }
 
-double StaggeredGrid::getCellSize()
-{
-	return this->cellSize;
-}
-
 void StaggeredGrid::getGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eigen::MatrixXd& w, Eigen::MatrixXd& p)
 {
 	convertGridToPoints(this->uGrid, u);
@@ -132,7 +121,7 @@ void StaggeredGrid::createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eig
 	igl::grid(this->dim, model);
 	transformVertices(model, this->box);
 
-	double cellHalfLen = this->getCellSize() / 2.0;
+	double cellHalfLen = this->cellSize / 2.0;
 
 	u = model;
 	transformVertices(u, this->box);
@@ -159,9 +148,6 @@ void StaggeredGrid::createGridPoints(Eigen::MatrixXd& u, Eigen::MatrixXd& v, Eig
 
 void StaggeredGrid::initializeVelocities()
 {
-	//this->uGrid.setRandomValues(0, this->getCellSize());
-	//this->vGrid.setRandomValues(-this->getCellSize(), this->getCellSize());
-	//this->wGrid.setRandomValues(-this->getCellSize(), this->getCellSize());
 	double rand = 60;
 	this->vGrid.setRandomValues(-rand, rand);
 	this->uGrid.setRandomValues(-rand, rand);
@@ -437,7 +423,6 @@ void StaggeredGrid::applyVorticityConfinement()
 void StaggeredGrid::updateGridVelocities()
 {
 	double dp; // change in pressure
-	double cellSize = this->getCellSize();
 
 	int d1 = this->uGrid.size(0);
 	int d2 = this->uGrid.size(1);
@@ -445,7 +430,7 @@ void StaggeredGrid::updateGridVelocities()
 	for (int i = 1; i < d1 - 1; i++) {
 		for (int j = 0; j < d2; j++) {
 			for (int k = 0; k < d3; k++) {
-				dp = (pGrid(i, j, k).value - pGrid(i - 1, j, k).value) / cellSize;
+				dp = (pGrid(i, j, k).value - pGrid(i - 1, j, k).value) / this->cellSize;
 				uGrid(i, j, k).value -= dt / AIR_DENSITY * dp;
 			}
 		}
@@ -458,7 +443,7 @@ void StaggeredGrid::updateGridVelocities()
 	for (int i = 0; i < d1; i++) {
 		for (int j = 1; j < d2 - 1; j++) {
 			for (int k = 0; k < d3; k++) {
-				dp = (pGrid(i, j, k).value - pGrid(i, j - 1, k).value) / cellSize;
+				dp = (pGrid(i, j, k).value - pGrid(i, j - 1, k).value) / this->cellSize;
 				vGrid(i, j, k).value -= dt / AIR_DENSITY * dp;
 			}
 		}
@@ -471,7 +456,7 @@ void StaggeredGrid::updateGridVelocities()
 	for (int i = 0; i < d1; i++) {
 		for (int j = 0; j < d2; j++) {
 			for (int k = 1; k < d3 - 1; k++) {
-				dp = (pGrid(i, j, k).value - pGrid(i, j, k - 1).value) / cellSize;
+				dp = (pGrid(i, j, k).value - pGrid(i, j, k - 1).value) / this->cellSize;
 				wGrid(i, j, k).value -= dt / AIR_DENSITY * dp;
 			}
 		}
@@ -492,7 +477,7 @@ void StaggeredGrid::computePressure(Eigen::VectorXd p)
 	int d3 = this->pGrid.size(2);
 	int gridSize = d1 * d2 * d3;
 
-	double gridGranularity = getCellSize();
+	double gridGranularity = this->cellSize;
 	double invx = 1 / gridGranularity;
 	double invy = 1 / gridGranularity;
 	double invz = 1 / gridGranularity;
@@ -640,7 +625,7 @@ void StaggeredGrid::centerVelandNorm(double denom) {
 
 // Vorticity Confinement
 void StaggeredGrid::vorticityConfinement(double epsilon) {
-	double denom = 2 * this->getCellSize();
+	double denom = 2 * this->cellSize;
 
 	this->centerVelandNorm(denom);
 
@@ -654,7 +639,7 @@ void StaggeredGrid::vorticityConfinement(double epsilon) {
 				norm = norm / (norm.norm() + 1e-20);
 				omega << this->omegaUGrid.safeGet(i, j, k), this->omegaVGrid.safeGet(i, j, k), this->omegaWGrid.safeGet(i, j, k);
 
-				res = norm.cross(omega) * this->getCellSize() * epsilon;
+				res = norm.cross(omega) * this->cellSize * epsilon;
 				
 				this->vortConfU(i, j, k).value = res[0];
 				this->vortConfV(i, j, k).value = res[1];

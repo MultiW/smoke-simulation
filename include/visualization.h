@@ -16,13 +16,11 @@ namespace Visualize {
 
 	int addObjectToScene(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F, const Eigen::RowVector3d& color);
 	int addPointsToScene(const Eigen::MatrixXd& points, const Eigen::RowVector3d& color);
-	int addParticlesToScene(const Eigen::MatrixXd& points, const Eigen::RowVector3d& color);
 
 	void updatePoints(int dataId, const Eigen::MatrixXd& V, const Eigen::RowVector3d& color);
 	void updateObject(int dataId, const Eigen::MatrixXd& V);
-	void updateParticle(int dataId, const Eigen::MatrixXd& V);
 
-	void setInvisible(int dataId, bool status);
+	void setInvisible(int dataId);
 
 	igl::opengl::glfw::Viewer& viewer();
 }

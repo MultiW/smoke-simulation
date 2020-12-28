@@ -73,7 +73,7 @@ inline void simulate()
 	staggeredGrid.applyPressureProjections();
 
 	// 2. advect temperature and density
-	staggeredGrid.updateTemperatureAndDensity();
+	staggeredGrid.advectTemperatureAndDensity();
 
 	// 3. advect particles
 	staggeredGrid.advectPosition(q);
@@ -167,6 +167,7 @@ inline void initializeParticles()
 	int stepV = particleTemplateV.rows();
 	int stepF = particleTemplateF.rows();
 
+	// Initialize particles meshes
 	particlesV.resize(PARTICLE_COUNT * stepV, 3);
 	particlesV = particleTemplateV.replicate(PARTICLE_COUNT, 1);
 
@@ -179,7 +180,7 @@ inline void initializeParticles()
 		particlesF.block(i * stepF, 0, stepF, 3) = particleTemplateF + ones * (i * stepV);
 	}
 
-	// initialize selection matrix to convert points to particles
+	// Initialize selection matrix to convert points to particles
 	std::vector<T> sparseEntries;
 	for (int i = 0; i < PARTICLE_COUNT; i++)
 	{
@@ -198,13 +199,15 @@ inline void initializeParticles()
 inline void updateParticleMeshes()
 {
 	int stepV = particleTemplateV.rows();
+	particlesV = templateParticlesV + selectionMatrix * q;
+
+	// Alternative
 	//for (int i = 0; i < q.rows(); i++)
 	//{
 	//	// translate template particle to appropriate location
 	//	particlesV.block(i * stepV, 0, stepV, 3) 
 	//		= particleTemplateV + q.row(i).replicate(stepV, 1);
 	//}
-	particlesV = templateParticlesV + selectionMatrix * q;
 }
 
 // Must be called first
@@ -238,7 +241,7 @@ inline void simulation_setup(int argc, char** argv)
 		updateParticleMeshes();
 		smokeId = Visualize::addObjectToScene(particlesV, particlesF, white);
 		Visualize::viewer().data(smokeId).set_face_based(false);
-		Visualize::viewer().core().toggle(Visualize::viewer().data(smokeId).show_lines);
+		Visualize::viewer().data(smokeId).show_lines = false;
 	}
 	else
 	{
@@ -247,11 +250,11 @@ inline void simulation_setup(int argc, char** argv)
 
 	// Create box last to set camera focus on the box
 	boxId = Visualize::addObjectToScene(boxV, boxF, orange);
-	Visualize::setInvisible(boxId, true);
+	Visualize::setInvisible(boxId);
 
 	staggeredGrid = StaggeredGrid(q, SMOKE_BOX, GRID_DIM, SMOKE_BOX.sizes()(0) / (GRID_DIM(0) - 1.0));
 
-	////// TODO: DELETE. Testing if initialization of staggered grid points is correct
+	// Display MAC grid for debugging
 	//Eigen::MatrixXd u, v, w, p;
 	//staggeredGrid.getGridPoints(u, v, w, p);
 	//Visualize::addPointsToScene(u, yellow);
