@@ -40,3 +40,9 @@ From within the `build` directory just issue:
     ./smoke-simulation.exe
 
 A glfw app should launch displaying the simulation.
+
+
+## Images
+
+![Ball with smoke](./image/ball.png)
+![Bunny with smoke](./image/bunny.png)
