@@ -272,12 +272,18 @@ void StaggeredGrid::advectPosition(Eigen::MatrixXd& q) {
 			distances, closestFaces, closestPoints, closestNormals);
 	}
 	for (int i = 0; i < q.rows(); i++) {
+		
+		//Apply RK2
+		
 		Eigen::RowVector3d point = q.row(i);
-		Eigen::RowVector3d nextPoint, vel;
+		Eigen::RowVector3d nextPoint, vel, vel2;
 		this->getSmokePointVelocity(vel, point, distances, closestNormals, i);
 		nextPoint = point + vel * dt;
 		this->enforceBoundaries(point, nextPoint);
 		
+		this->getSmokePointVelocity(vel2, nextPoint, distances, closestNormals, i);
+		nextPoint = point + (vel + vel2) * dt / 2;
+		this->enforceBoundaries(point, nextPoint);
 
 		if (ball) {
 			Eigen::Vector3d center = ballCenter.transpose();

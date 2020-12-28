@@ -132,8 +132,8 @@ inline void initializeBall()
 
    	// Display sphere smaller than actual size to account for the particle's large size
    	Eigen::AlignedBox3d sphereBoundaries;
-   	sphereBoundaries.extend(initialBallPosition - Eigen::Vector3d::Constant(ballRadius - 0.5));
-   	sphereBoundaries.extend(initialBallPosition + Eigen::Vector3d::Constant(ballRadius - 0.5));
+   	sphereBoundaries.extend(initialBallPosition - Eigen::Vector3d::Constant(ballRadius));
+   	sphereBoundaries.extend(initialBallPosition + Eigen::Vector3d::Constant(ballRadius));
    	transformVertices(ballV, sphereBoundaries);
 }
 
