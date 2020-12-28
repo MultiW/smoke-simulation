@@ -18,7 +18,7 @@ const Eigen::AlignedBox3d SMOKE_BOX(Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(bo
 const Eigen::Vector3i GRID_DIM(21, 21, 21);
 
 // smoke particle count and initial location
-const int PARTICLE_COUNT = 100000;
+const int PARTICLE_COUNT = 10000;
 const Eigen::AlignedBox3d SMOKE_BOUNDS(Eigen::Vector3d(15, 15, 15), Eigen::Vector3d(17, 17, 17));
 
 // buoyancy force variables
