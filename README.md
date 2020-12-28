@@ -54,7 +54,43 @@ Other
 * ```list3d.h```: 3D list object
 
 ## Simulation Options
+Simulation options can be set in ```constants.h```. After making an edit, make sure to rebuild the 
+project before running it again.
 
+### Scenarios
+You can customize different scenarios to simulate. Set the constants to match the scenarios listed below.
+
+To simulate smoke only:
+```
+// external objects
+const bool ball = false;
+...
+const bool bunny = false;
+```
+
+To simulate smoke and ball collision:
+```
+// external objects
+const bool ball = true;
+```
+
+To simulate smoke and bunny collision:
+```
+const bool bunny = true;
+```
+
+### Performance 
+If the simulation is too slow, you can reduce the number of particles:
+```
+// smoke particle count and initial location
+const int PARTICLE_COUNT = 10000;
+```
+
+If the simulation is still too slow, consider simulating without a bunny object,
+and consider using the following setting to display simplified smoke particles.
+```
+const bool useParticles = false;
+```
 
 ## Setup
 
@@ -88,7 +124,6 @@ This should find and build the dependencies and create a `smoke-simulation.exe` 
 More help with compilation can be found [here](http://libigl.github.io/libigl/tutorial/).
 
 ### Run
-
 From within the `build` directory just issue:
 
     ./smoke-simulation.exe
