@@ -13,11 +13,13 @@
 #include <igl/bounding_box.h>
 
 #include <Eigen/Geometry>
+#include <Eigen/Sparse>
 
 #include <stdio.h>
 #include <time.h>
 #include <iostream>
 
+typedef Eigen::Triplet<double> T;
 
 // Predefined colors
 const Eigen::RowVector3d orange(1.0, 0.7, 0.2);
@@ -55,6 +57,10 @@ Eigen::MatrixXi particlesF;
 // ====
 
 Eigen::RowVector3d bunnyBoxHalfLengths;
+
+// helps convert points to particles
+Eigen::SparseMatrix<double> selectionMatrix;
+Eigen::MatrixXd templateParticlesV;
 
 // Update location and velocity of smoke particles
 inline void simulate()
@@ -170,18 +176,35 @@ inline void initializeParticles()
 	particlesF.resize(PARTICLE_COUNT * stepF, 3);
 	for (int i = 0; i < PARTICLE_COUNT; i++)
 	{
-		particlesF.block(i * stepF, 0, stepF, 3) = particleTemplateF + ones * (i * stepF);
+		particlesF.block(i * stepF, 0, stepF, 3) = particleTemplateF + ones * (i * stepV);
 	}
+
+	// initialize selection matrix to convert points to particles
+	std::vector<T> sparseEntries;
+	for (int i = 0; i < PARTICLE_COUNT; i++)
+	{
+		for (int j = 0; j < stepV; j++)
+		{
+			sparseEntries.push_back(T(i * stepV + j, i, 1));
+		}
+	}
+	selectionMatrix.resize(PARTICLE_COUNT * stepV, PARTICLE_COUNT);
+	selectionMatrix.setZero();
+	selectionMatrix.setFromTriplets(sparseEntries.begin(), sparseEntries.end());
+
+	templateParticlesV = particleTemplateV.replicate(PARTICLE_COUNT, 1);
 }
 
 inline void updateParticleMeshes()
 {
-	for (int i = 0; i < q.rows(); i++)
-	{
-		// translate template particle to appropriate location
-		particlesV.block(i * particleTemplateV.rows(), 0, particleTemplateV.rows(), 3) 
-			= particleTemplateV + q.row(i).replicate(particleTemplateV.rows(), 1);
-	}
+	int stepV = particleTemplateV.rows();
+	//for (int i = 0; i < q.rows(); i++)
+	//{
+	//	// translate template particle to appropriate location
+	//	particlesV.block(i * stepV, 0, stepV, 3) 
+	//		= particleTemplateV + q.row(i).replicate(stepV, 1);
+	//}
+	particlesV = templateParticlesV + selectionMatrix * q;
 }
 
 // Must be called first
@@ -214,6 +237,8 @@ inline void simulation_setup(int argc, char** argv)
 		initializeParticles();
 		updateParticleMeshes();
 		smokeId = Visualize::addObjectToScene(particlesV, particlesF, white);
+		Visualize::viewer().data(smokeId).set_face_based(false);
+		Visualize::viewer().core().toggle(Visualize::viewer().data(smokeId).show_lines);
 	}
 	else
 	{
