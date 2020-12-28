@@ -54,11 +54,11 @@ Other
 * ```list3d.h```: 3D list object
 
 ## Simulation Options
-Simulation options can be set in ```constants.h```. After making an edit, make sure to rebuild the 
+Simulation options can be set in ```constants.h```. After making an edit, make sure to **rebuild** the 
 project before running it again.
 
 ### Scenarios
-You can customize different scenarios to simulate. Set the constants to match the scenarios listed below.
+You can customize different scenarios to simulate. Simply set the constants to match the appropriate scenario.
 
 To simulate smoke only:
 ```
@@ -72,22 +72,26 @@ To simulate smoke and ball collision:
 ```
 // external objects
 const bool ball = true;
+...
+const bool bunny = false;
 ```
 
 To simulate smoke and bunny collision:
 ```
+const bool ball = false;
+...
 const bool bunny = true;
 ```
 
 ### Performance 
-If the simulation is too slow, you can reduce the number of particles:
+If the simulation is too slow, you can reduce the number of particles with the following constant:
 ```
 // smoke particle count and initial location
 const int PARTICLE_COUNT = 10000;
 ```
 
-If the simulation is still too slow, consider simulating without a bunny object,
-and consider using the following setting to display simplified smoke particles.
+If the simulation is still slow, consider simulating without a bunny object.
+Also consider using the following setting to display simplified smoke particles.
 ```
 const bool useParticles = false;
 ```
