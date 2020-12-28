@@ -1,13 +1,16 @@
-# libigl example project
+# Fluid Simulation: Smoke and Collision
 
-A blank project example showing how to use libigl and cmake. Feel free and
-encouraged to copy or fork this project as a way of starting a new personal
-project using libigl.
+## Demo
 
-## See the tutorial first
+TODO: pictures
 
-Then build, run and understand the [libigl
-tutorial](http://libigl.github.io/libigl/tutorial/).
+[Demonstration and methodology](https://youtu.be/lMkeVszKhB4)
+
+## Code Navigation
+
+
+## Simulation Options
+
 
 ## Dependencies
 
@@ -33,6 +36,8 @@ Compile this project using the standard cmake routine:
 
 This should find and build the dependencies and create a `smoke-simulation.exe` binary.
 
+More help with compilation can be found [here](http://libigl.github.io/libigl/tutorial/).
+
 ## Run
 
 From within the `build` directory just issue:
@@ -41,8 +46,11 @@ From within the `build` directory just issue:
 
 A glfw app should launch displaying the simulation.
 
-
 ## Images
 
 ![Ball with smoke](./image/ball.png)
 ![Bunny with smoke](./image/bunny.png)
+
+## Sources
+
+TODO
