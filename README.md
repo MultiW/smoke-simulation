@@ -1,19 +1,68 @@
 # Fluid Simulation: Smoke and Collision
 
+This is a smoke simulation project. We used [libigl](http://libigl.github.io/libigl/) to render the simulation, 
+and libigl and [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) to implement the smoke simulation behavior. 
+
 ## Demo
+Smoke simulation colliding with a ball:
 
-TODO: pictures
+<img src="./image/ball.png" alt="drawing" width="300">
+<br/>
+<br/>
 
-[Demonstration and methodology](https://youtu.be/lMkeVszKhB4)
+Smoke simulation colliding with a bunny:
+
+<img src="./image/bunny.png" alt="drawing" width="300">
+<br/>
+<br/>
+
+Video demonstration and methodology: [here](https://youtu.be/lMkeVszKhB4)
+
+## Methodology
+
+Please refer to ```paper.pdf``` in this repository for details.
 
 ## Code Navigation
 
+```main.cpp```
+* Runs the smoke simulation
+* Connects smoke simulation and renderer
+
+```visualization.h```, ```visualization.cpp```
+* Wrapper around libigl's simulation viewer
+
+```simulation.h```
+* Initializes simulation objects
+* Manages simulation state variables
+* Simulates smoke
+
+```staggered_grid.h```, ```staggered_grid.cpp```
+* Staggered grid, also known as Marker-and-Cell (MAC) grid.
+* Discretization of the smoke box space is managed by this data structure
+* Contains smoke simulation logic; e.g. external forces, pressure projection, advection, etc.
+
+```grid.h```, ```grid.cpp```
+* Data structure to hold grids of the staggered grid
+
+Utilities
+* ```grid_util.h```, ```grid_util.cpp```: helper functions related to grid management
+* ```util.h```, ```util.c```: other helper functions
+
+Other
+* ```constants.h```: simulation options and tuning parameters for smoke simulation
+* ```point.h```, ```point.cpp```: Point object used for ```Grid``` objects
+* ```list3d.h```: 3D list object
 
 ## Simulation Options
 
 
-## Dependencies
+## Setup
 
+To clone the repository and its submodules: ```git clone --recursive https://github.com/MultiW/smoke-simulation.git```
+
+The project can be found in: https://github.com/MultiW/smoke-simulation
+
+### Dependencies
 The only dependencies are stl, eigen, [libigl](http://libigl.github.io/libigl/) and
 the dependencies of the `igl::opengl::glfw::Viewer`.
 
@@ -24,7 +73,7 @@ The cmake build system will attempt to find libigl according to environment vari
 
 C++11 or higher should be used.
 
-## Compile
+### Compile
 _Note: this project was only tested on Windows 10_
 
 Compile this project using the standard cmake routine:
@@ -38,7 +87,7 @@ This should find and build the dependencies and create a `smoke-simulation.exe` 
 
 More help with compilation can be found [here](http://libigl.github.io/libigl/tutorial/).
 
-## Run
+### Run
 
 From within the `build` directory just issue:
 
@@ -46,11 +95,5 @@ From within the `build` directory just issue:
 
 A glfw app should launch displaying the simulation.
 
-## Images
-
-![Ball with smoke](./image/ball.png)
-![Bunny with smoke](./image/bunny.png)
-
-## Sources
-
-TODO
+## Collaboration
+James Bao and Xin Wang
