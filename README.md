@@ -3,6 +3,8 @@
 This is a smoke simulation project. We used [libigl](http://libigl.github.io/libigl/) to render the simulation, 
 and libigl and [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) to implement the smoke simulation behavior. 
 
+This project was built from scratch, forked from the [libigl example project](https://github.com/libigl/libigl-example-project).
+
 ## Demo
 Smoke simulation colliding with a ball:
 
